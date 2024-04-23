@@ -1,0 +1,153 @@
+---
+title: "Example analysis with bdlim on simulated data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Example analysis with bdlim on simulated data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+## Install and load package
+
+The package can be installed from GitHub with the command:
+
+```{r install, eval=FALSE}
+remotes::install_github("anderwilson/bdlim")
+```
+
+
+
+```{r setup}
+# load package
+library(bdlim)
+```
+
+
+## Fit model
+
+The code chunk below fits the model. In comparison to the examples, this uses a large number of iterations (20000). See comments below on convergence and choosing the number of iterations. More iterations takes longer. This can be partially offset by using parallel computing. The BDLIM fits and compares 4 models. Setting ```parallel=TRUE``` will run those four models in parallel. This reduces the computation time by 2-4 fold. If you have at least 4 cores on your computer (and you almost certainly do) it is advised to use parallel computing.
+
+```{r fit model}
+# set seed so we get same results when rerunning
+set.seed(316)
+
+# fit model
+fit_sex <- bdlim4(
+  y = simulated_birth_data_c1$bwgaz,
+  exposure = simulated_birth_data_c1[,paste0("pm25_",1:37)],
+  covars = simulated_birth_data_c1[,c("MomPriorBMI","MomAge","race","Hispanic",
+                                   "EstMonthConcept","EstYearConcept")],
+  group = as.factor(simulated_birth_data_c1$ChildSex),
+  df = 5,
+  nits = 20000,
+  nthin = 1,
+  parallel = FALSE
+)
+```
+
+This will return an object of class ```bdlim4``` that contains the posterior sample from all four models.
+
+## View results
+
+Next step is to view the results. First, we can compare model fits for the four patterns of modification. In this case the BDLIM-bw model, the model that has different effect sizes and weight functions for each group, had the highest posterior model probabilities. We will use that model as our primary model.
+
+```{r model fit}
+fit_sex
+```
+
+Next, the summary allows us to view some model output and make the calculations needed to view plots. The summary function automatically reports results for the best fitting model (BDLIM-bw in this case). The key elements of the summary function are:
+
+* model fit statistics: posterior model probabilities and WAIC. Posterior model probabilities are used to determine which pattern of modification is best supported by the data. WAIC is used to compare other hyperparameters, mainly df used for the spline basis.
+* posterior summary of the cumulative effect: The posterior mean, standard deviation, and credible intervals are provided for each group. These are provided even when there is no between group differences.
+* posterior summary of covariate regression coefficients: The posterior mean, standard deviation, and credible intervals are provided for the regression coefficients for all covariates and the group-specific intercepts. 
+
+
+```{r summary}
+sfit_sex <- summary(fit_sex)
+sfit_sex
+```
+
+Finally, we can plot the results. The plots show the estimated distributed lag function for each group. This is interpreted as the effect of a one unit change in exposure at a single time point while holding everything else constant.
+
+```{r plot}
+plot(sfit_sex)
+```
+
+
+
+## Check for convergence
+
+Valid inference requires a sufficient posterior sample. There are three parameters that control the MCMC: 
+
+* ```nits``` is the number of iterations and should be be large (20000 - 100000). 
+* ```nburn``` is the number of iterations that should be discarded as burn in. This is set to half of the total number of iterations. This can generally be left unspecified unless.
+* ```nthin``` is the thinning factor. The sampler will keep every niter iterations between the nburn and niter. Ideally, we would like to have a decently large posterior sample (e.g. 2000-10000). Therefore, we want ```(nits-nburn)/nthin``` to be equal to something in that range.
+
+### Comparing multuiple chains
+
+To check for convergence, it is advised that you run the model a few times with different seeds. Then, compare the results between the change. If the results are very similar then it is likely that the model as converged. If they are different, increase the number of iterations.
+
+### Trace plots
+
+Trace plots can be made from the posterior. For example, a trace plot from the BDLIM-bw model for 2 times in the distributed lag function for the first group can be made as shown below.
+
+```{r trace plot, out.width="50%"}
+plot(fit_sex$fit_bw$dlfun[[1]][,10], type="l", las=1)  
+plot(fit_sex$fit_bw$dlfun[[1]][,25], type="l", las=1)  
+```
+
+Other MCMC diagnostics can be performed by directly using the posterior sample as illustrated with the trace plot.
+
+
+## Selecting degrees of freedom
+
+The weight function uses a orthonormal version of a natural spline. The number of degrees of freedom must be selected with ```df```. Generally, the degrees of freedom are 3, 4, 5, or 6. To select degrees of freedom, consider fitting models with a few choices. Then compare the WAIC between models (provided in the summary). A lower WAIC indicates better model fit. Also visually compare the distributed lag function estimates. 
+
+
+
+
+## Improve plots
+
+The graphs provided by the ```plot``` function are unlikely to be sufficient for publications or presentations. At a minimum, the axis labels are not specific enough. There are two ways to improve the graphs.
+
+The first way is to make minor edits to the graph with ```ggplot2```. In the example below, the plot is saved as the object ```plt```. Then, a title and better y-axis label is added.
+
+```{r edit plot}
+library(ggplot2)
+
+# save plot
+plt <- plot(sfit_sex)
+
+# edit plot
+plt <- plt + ggtitle("My plot with BDLIM") +
+  ylab("Estimated expected difference in\nBWGAZ per 1 ug/m3 increase in exposure")
+
+# display new plot
+plt
+```
+
+The second option is to make an entirely new plot from the posterior estimate obtained from the ```summary``` function.
+
+```{r new plot}
+ggplot(sfit_sex$dlfun, aes(x=time, y=mean, ymin=q2.5, ymax=q97.5, color=group, fill=group)) +
+  geom_ribbon(color=NA, alpha=.6) + geom_line() +
+  theme_light() +
+  ggtitle("My plot with BDLIM") +
+  ylab("Estimated expected difference in\nBWGAZ per 1 ug/m3 increase in exposure") + 
+  xlab("Gestational age (exposure time)")
+```
+
+## Other options
+
+### Random effects model
+
+A random intercept can be included into the model for longitudinal studies or those with other groupings. The ```id``` option should be a vector of factor variables. The results will be returned in the object and summarized by the summary function.
+

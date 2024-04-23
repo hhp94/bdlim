@@ -1,0 +1,28 @@
+url: ~
+template:
+  bootstrap: 5
+
+reference:
+  - title: Main function
+    desc:  Essential functionality
+    contents:
+      - bdlim4
+  - title: View results from main function
+    desc:  Essential functionality
+    contents:
+      - summary.bdlim4
+      - plot.summary.bdlim4
+      - print.bdlim4
+      - print.summary.bdlim4
+  - title: Other functions
+    desc:  Mostly helper function or functions unlikely to be used by end users
+    contents:
+      - bdlim1
+      - summary.bdlim1
+      - print.bdlim1
+      - makebasis
+      - modelcompare
+  - title: Data
+    desc:  Data for examples (simulated)
+    contents:
+      - simulated_birth_data_c1

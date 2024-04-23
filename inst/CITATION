@@ -1,0 +1,19 @@
+citation(auto = meta)
+
+
+bibentry(
+  bibtype  = "Article",
+  title    = "Bayesian distributed lag interaction models to identify perinatal windows of vulnerability in children's health",
+  author   = c(person(c("Ander"), "Wilson"),
+                    person(c("Yueh-Hsiu", "Mathilda"), "Chiu"),
+                    person(c("Hsiao-Hsien", "Leon"), "Hsu"),
+                    person(c("Robert", "O."), "Wright"),
+                    person(c("Rosalind", "J."), "Wright"),
+                    person(c("Brent", "A."), "Coull")),
+  journal  = "Biostatistics",
+  year     = 2017,
+  volume   = 18,
+  number   = 3,
+  pages    = "537–552",
+  doi      = "10.1093/biostatistics/kxx002"
+)
