@@ -91,15 +91,17 @@
 <div class="section level3">
 <h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h3>
-<ul>
-<li>Install from GitHub:</li>
-</ul>
+<p>Install from GitHub using the code below. If you want to build the vignette, use the <code>devtools::install(build_vignettes = TRUE)</code> option. Building the vignette will take a couple of minutes. Alternatively, you can use the online version available at <a href="https://anderwilson.github.io/bdlim/articles/bdlim.html" class="external-link">anderwilson.github.io/bdlim/articles/bdlim.html</a>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"anderwilson/bdlim"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"anderwilson/bdlim"</span>, <span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/install.html" class="external-link">install</a></span><span class="op">(</span>build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="use">Use<a class="anchor" aria-label="anchor" href="#use"></a>
 </h3>
+<p>A vignette can be accessed with the following code or accessed at <a href="https://anderwilson.github.io/bdlim/articles/bdlim.html" class="external-link">anderwilson.github.io/bdlim/articles/bdlim.html</a>.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://anderwilson.github.io/bdlim/" class="external-link">bdlim</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bdlim"</span><span class="op">)</span></span></code></pre></div>
 <p>The main function is <code>bdlim4</code>. See the help file for that function for a detailed example. The <code>summary</code> and <code>plot</code> functions can be used to make inference on the results. Specifically:</p>
 <ul>
 <li>The model probabilities from the <code>summary</code> or indicate which pattern of heterogeneity is best supported by the data.</li>
