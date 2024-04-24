@@ -25,14 +25,21 @@ This package includes several improvements over the previous software. Many of t
 
 ### Installation
 
-* Install from GitHub:
+Install from GitHub using the code below. If you want to build the vignette, use the ```devtools::install(build_vignettes = TRUE)``` option. Building the vignette will take a couple of minutes. Alternatively, you can use the online version available at [anderwilson.github.io/bdlim/articles/bdlim.html](https://anderwilson.github.io/bdlim/articles/bdlim.html). 
 
 ```r
-remotes::install_github("anderwilson/bdlim")
+remotes::install_github("anderwilson/bdlim", devtools::install(build_vignettes = TRUE))
 ```
 
 
 ### Use
+
+A vignette can be accessed with the following code or accessed at [anderwilson.github.io/bdlim/articles/bdlim.html](https://anderwilson.github.io/bdlim/articles/bdlim.html). 
+
+```r
+library(bdlim)
+vignette("bdlim")
+```
 
 The main function is ```bdlim4```. See the help file for that function for a detailed example. The ```summary``` and ```plot``` functions can be used to make inference on the results. Specifically:
 
