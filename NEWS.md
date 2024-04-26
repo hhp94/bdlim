@@ -1,3 +1,3 @@
-# bdlim 0.1.0
+# bdlim 0.2.0
 
-* Initial CRAN submission.
+Initial release on GitHub.
