@@ -5,3 +5,4 @@
 ^docs$
 ^pkgdown$
 ^buildignore$
+^vignettes/articles$
