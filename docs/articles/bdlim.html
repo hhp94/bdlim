@@ -39,7 +39,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bdlim</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -105,7 +105,7 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># load package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://anderwilson.github.io/bdlim/" class="external-link">bdlim</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; This is bdlim 0.2.0.</span></span>
+<span><span class="co">#&gt; This is bdlim 0.2.1.</span></span>
 <span><span class="co">#&gt; For details: help(`bdlim-package`), vignette('bdlim'), or https://anderwilson.github.io/bdlim/</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -163,11 +163,11 @@ model as our primary model.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Modification pattern probabilities (higher is better fit):</span></span>
 <span><span class="co">#&gt;   *bw*      b      w      n </span></span>
-<span><span class="co">#&gt; 0.5142 0.4857 0.0001 0.0000 </span></span>
+<span><span class="co">#&gt; 0.5241 0.4757 0.0002 0.0000 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Modification pattern WAIC (lower is better fit):</span></span>
-<span><span class="co">#&gt;         bw      *b*        w        n</span></span>
-<span><span class="co">#&gt; 1 1698.297 1697.598 1724.936 1735.252</span></span>
+<span><span class="co">#&gt;        bw      *b*        w        n</span></span>
+<span><span class="co">#&gt; 1 1698.36 1698.278 1727.316 1735.125</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Note: Model probabilities tend to favor more complex models compared to WAIC. It is recomended to use model probabilities for selecting the modification pattern and WAIC to compare degrees of freedom for the weight function.</span></span></code></pre></div>
 <p>Next, the summary allows us to view some model output and make the
@@ -201,41 +201,41 @@ group-specific intercepts.</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model fit statistics:</span></span>
 <span><span class="co">#&gt;   *bw*      b      w      n </span></span>
-<span><span class="co">#&gt; 0.5142 0.4857 0.0001 0.0000 </span></span>
+<span><span class="co">#&gt; 0.5241 0.4757 0.0002 0.0000 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Estimated cumulative effects:</span></span>
-<span><span class="co">#&gt;  group        mean       median         sd       q2.5      q97.5 pr_gr0</span></span>
-<span><span class="co">#&gt;      F  0.01370411  0.005127469 0.06041609 -0.1030119  0.1582650 0.5754</span></span>
-<span><span class="co">#&gt;      M -0.63610829 -0.634678781 0.09226911 -0.8164490 -0.4589984 0.0000</span></span>
+<span><span class="co">#&gt;  group        mean       median         sd        q2.5      q97.5 pr_gr0</span></span>
+<span><span class="co">#&gt;      F  0.01265607  0.003955644 0.05747093 -0.09589774  0.1477296 0.5768</span></span>
+<span><span class="co">#&gt;      M -0.64229013 -0.640135385 0.09668678 -0.83429787 -0.4595210 0.0000</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Estimated covariate regression coefficients:</span></span>
 <span><span class="co">#&gt;                   name         mean       median          sd          q2.5</span></span>
-<span><span class="co">#&gt;  interceptnames_groups -1.145275401 -1.159775634 6.338411354 -13.788131923</span></span>
-<span><span class="co">#&gt;  interceptnames_groups  0.391740393  0.354081236 6.340469888 -12.152820322</span></span>
-<span><span class="co">#&gt;            MomPriorBMI -0.054184102 -0.054202340 0.003134188  -0.060440886</span></span>
-<span><span class="co">#&gt;                 MomAge -0.001642926 -0.001602513 0.003171888  -0.007906933</span></span>
-<span><span class="co">#&gt;            raceAsianPI  0.156153329  0.154831239 0.239137581  -0.306669789</span></span>
-<span><span class="co">#&gt;              raceBlack  0.036144264  0.035644046 0.241432209  -0.434388449</span></span>
-<span><span class="co">#&gt;              racewhite  0.103328127  0.103092631 0.233270350  -0.352307691</span></span>
-<span><span class="co">#&gt;    HispanicNonHispanic  0.254142033  0.254020113 0.038985612   0.177098325</span></span>
-<span><span class="co">#&gt;        EstMonthConcept  0.036646531  0.036633576 0.005474293   0.026066821</span></span>
-<span><span class="co">#&gt;         EstYearConcept  0.001517289  0.001533233 0.003146498  -0.004611081</span></span>
+<span><span class="co">#&gt;  interceptnames_groups -1.288649009 -1.352794065 6.329812351 -13.770184970</span></span>
+<span><span class="co">#&gt;  interceptnames_groups  0.278686005  0.217242365 6.335975467 -12.250935583</span></span>
+<span><span class="co">#&gt;            MomPriorBMI -0.054166358 -0.054192685 0.003145915  -0.060347975</span></span>
+<span><span class="co">#&gt;                 MomAge -0.001608893 -0.001591128 0.003126360  -0.007893414</span></span>
+<span><span class="co">#&gt;            raceAsianPI  0.156088428  0.155867977 0.237822858  -0.315056574</span></span>
+<span><span class="co">#&gt;              raceBlack  0.038428563  0.037625608 0.241294642  -0.428910476</span></span>
+<span><span class="co">#&gt;              racewhite  0.103999310  0.104812728 0.231502812  -0.351104997</span></span>
+<span><span class="co">#&gt;    HispanicNonHispanic  0.254167520  0.253542346 0.039506057   0.175608920</span></span>
+<span><span class="co">#&gt;        EstMonthConcept  0.036834221  0.036780395 0.005499963   0.026110036</span></span>
+<span><span class="co">#&gt;         EstYearConcept  0.001589746  0.001617969 0.003141937  -0.004611998</span></span>
 <span><span class="co">#&gt;         q97.5 pr_gr0</span></span>
-<span><span class="co">#&gt;  11.126995782 0.4257</span></span>
-<span><span class="co">#&gt;  12.698464274 0.5239</span></span>
-<span><span class="co">#&gt;  -0.048103753 0.0000</span></span>
-<span><span class="co">#&gt;   0.004476351 0.3041</span></span>
-<span><span class="co">#&gt;   0.621747970 0.7415</span></span>
-<span><span class="co">#&gt;   0.510347878 0.5608</span></span>
-<span><span class="co">#&gt;   0.561156651 0.6694</span></span>
-<span><span class="co">#&gt;   0.330786945 1.0000</span></span>
-<span><span class="co">#&gt;   0.047386766 1.0000</span></span>
-<span><span class="co">#&gt;   0.007774140 0.6840</span></span>
+<span><span class="co">#&gt;  11.234639550 0.4168</span></span>
+<span><span class="co">#&gt;  12.740740315 0.5139</span></span>
+<span><span class="co">#&gt;  -0.047987580 0.0000</span></span>
+<span><span class="co">#&gt;   0.004489367 0.3044</span></span>
+<span><span class="co">#&gt;   0.624049796 0.7460</span></span>
+<span><span class="co">#&gt;   0.514582108 0.5636</span></span>
+<span><span class="co">#&gt;   0.557782646 0.6737</span></span>
+<span><span class="co">#&gt;   0.331154266 1.0000</span></span>
+<span><span class="co">#&gt;   0.047773498 1.0000</span></span>
+<span><span class="co">#&gt;   0.007734955 0.6923</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; BDLIM fit on 1000 observations. Estimated residual standard deviation is 0.562 (0.537,0.588). WAIC is 1698.297.</span></span>
+<span><span class="co">#&gt; BDLIM fit on 1000 observations. Estimated residual standard deviation is 0.562 (0.538,0.588). WAIC is 1698.36.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Use `plot(); for the summary.bdlim4 object to view estimated distributed lag functions. The `dlfun' object in the summary object contains estimates of the lag functions.</span></span></code></pre></div>
 <p>Finally, we can plot the results. The plots show the estimated

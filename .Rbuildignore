@@ -6,3 +6,4 @@
 ^pkgdown$
 ^buildignore$
 ^vignettes/articles$
+^testandsim$

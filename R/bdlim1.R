@@ -65,10 +65,10 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
 
   # design matrix for covariates and main effects of group
   mm <- model.matrix(y~.-1, data=alldata)
-  design <- mm[,-c(ncol(mm)+1-1:ncol(exposure))]
+  design <- mm[,-c(ncol(mm)+1-c(ncol(exposure):1))]
 
   # exposure matrix
-  exposure <- mm[,c(ncol(mm)+1-1:ncol(exposure))]
+  exposure <- mm[,c(ncol(mm)+1-c(ncol(exposure):1))]
 
   # basis for weights
   basis <- makebasis(exposure,df=df)
