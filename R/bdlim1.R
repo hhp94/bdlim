@@ -142,7 +142,7 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
     V <- t(design) %*% design/(sigma^2)
     diag(V) <- diag(V) + c(rep(REprec,nRE), rep(1/100,n_regcoef-nRE))
     V <- chol2inv(chol(V))
-    m <- drop(V %*% (t(design) %*% y)/(sigma^2))
+    m <- drop(V %*% (t(design) %*% y)) / (sigma^2)
     regcoef <- drop(m + t(chol(V)) %*% rnorm(n_regcoef))
 
 
@@ -159,23 +159,17 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
 
       # log likelihood to start update of theta/w
       ll <- sum(dnorm(y[w_group_ids[[j]]],design[w_group_ids[[j]],] %*% regcoef, sigma, log=TRUE))
-      # print(ll)
       threshold <- ll + log(runif(1))
-      # print(threshold)
       ll <- threshold-1 # allows always to start loop
-      # print(ll)
+
 
       # vector for ellipse
       nu <- matrix(rnorm(df),1,df)
       eta_max <- eta <- runif(1,0,2*pi)
       eta_min <- eta_max-2*pi
 
-      count=0
       while(ll<threshold ){
 
-        count=count+1
-
-        # cat("count",count,"\n")
         # proposed coefficients and normalized weights
         theta_prop <- theta[j,]*cos(eta) + nu*sin(eta)
         w[j,] <- drop(basis%*%c(theta_prop))
@@ -187,7 +181,6 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
 
         # log likelihood
         ll <- sum(dnorm(y[w_group_ids[[j]]],design[w_group_ids[[j]],] %*% regcoef,sigma, log=TRUE))
-        # print(ll)
         # adjust eta in case repeat
         if(eta<0){
           eta_min <- eta
