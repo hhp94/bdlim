@@ -151,3 +151,6 @@ ggplot(sfit_sex$dlfun, aes(x=time, y=mean, ymin=q2.5, ymax=q97.5, color=group, f
 
 A random intercept can be included into the model for longitudinal studies or those with other groupings. The ```id``` option should be a vector of factor variables. The results will be returned in the object and summarized by the summary function.
 
+### Logistic regression
+
+For a binary outcome, a logistic regression version of the model can be used. This is specified with the option ```family="binomial"``` in the ```bdlim4``` function. 

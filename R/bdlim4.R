@@ -12,6 +12,7 @@
 #' @param nburn Number of MCMC iterations to be discarded as burn in. The default is half if the MCMC iterations. This is only used for WAIC in this function but is passed to summary and plot functions and used there.
 #' @param nthin Thinning factors for the MCMC. This is only used for WAIC in this function but is passed to summary and plot functions and used there.
 #' @param parallel Logical to use parallel computing for 4 models. If TRUE then the min of 4 and number of cores available will be used.
+#' @param family Family of model to be used. Supported options are "gaussian" for a normal/Gaussian linear model and "binomial" for a logistic model.
 #'
 #' @importFrom parallel makeCluster stopCluster clusterExport parLapply detectCores
 #'
@@ -21,7 +22,9 @@
 #' @example inst/examples/bdlim_example.R
 
 
-bdlim4 <- function(y, exposure, covars, group, id=NULL, df, nits, nburn=round(nits/2), nthin=1, parallel=TRUE){
+bdlim4 <- function(y, exposure, covars, group, id=NULL,
+                   df, nits, nburn=round(nits/2), nthin=1, parallel=TRUE,
+                   family="gaussian"){
 
   # make sure group is a factor variable
   # this is redundant with bdlim1 but makes the error message clearer to place here also
@@ -39,8 +42,8 @@ bdlim4 <- function(y, exposure, covars, group, id=NULL, df, nits, nburn=round(ni
 
   # fit each model
 
-  # sequential
-  if(!parallel){
+  # sequential  - Gaussian
+  if(!parallel & toupper(family)=="GAUSSIAN"){
     out <- list()
     cat("fitting bw\n")
     out$fit_bw <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
@@ -53,13 +56,41 @@ bdlim4 <- function(y, exposure, covars, group, id=NULL, df, nits, nburn=round(ni
     cat("postprocessing")
   }
 
-  # parallel
-  if(parallel){
+  # parallel - Gaussian
+  if(parallel & toupper(family)=="GAUSSIAN"){
     cat("fitting models in parallel with",min(detectCores(),4),"cores\n")
     cl <- makeCluster(min(detectCores(),4))
     clusterExport(cl, varlist=c("bdlim1","y","exposure","covars","group","id","df","nits","nburn","nthin"), envir = environment())
     out <- parLapply(cl , 1:4, function(mod){
       bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id,
+             w_free = c(TRUE,FALSE,TRUE,FALSE)[mod], b_free =  c(TRUE,TRUE,FALSE,FALSE)[mod],
+             df = df, nits = nits, nburn = nburn, nthin = nthin)
+    })
+    stopCluster(cl)
+    names(out) <- c("fit_bw","fit_b","fit_w","fit_n")
+  }
+
+  # sequential  - logistic
+  if(!parallel & toupper(family)=="BINOMIAL"){
+    out <- list()
+    cat("fitting bw\n")
+    out$fit_bw <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    cat("fitting b\n")
+    out$fit_b <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    cat("fitting w\n")
+    out$fit_w <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    cat("fitting n\n")
+    out$fit_n <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    cat("postprocessing")
+  }
+
+  # parallel - logistic
+  if(parallel & toupper(family)=="BINOMIAL"){
+    cat("fitting models in parallel with",min(detectCores(),4),"cores\n")
+    cl <- makeCluster(min(detectCores(),4))
+    clusterExport(cl, varlist=c("bdlim1","y","exposure","covars","group","id","df","nits","nburn","nthin"), envir = environment())
+    out <- parLapply(cl , 1:4, function(mod){
+      bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id,
              w_free = c(TRUE,FALSE,TRUE,FALSE)[mod], b_free =  c(TRUE,TRUE,FALSE,FALSE)[mod],
              df = df, nits = nits, nburn = nburn, nthin = nthin)
     })

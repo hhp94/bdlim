@@ -16,7 +16,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bdlim</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -76,7 +76,8 @@
 <span>  <span class="va">nits</span>,</span>
 <span>  nburn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">nits</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  nthin <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  parallel <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  parallel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  family <span class="op">=</span> <span class="st">"gaussian"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -120,6 +121,10 @@
 
 <dt>parallel</dt>
 <dd><p>Logical to use parallel computing for 4 models. If TRUE then the min of 4 and number of cores available will be used.</p></dd>
+
+
+<dt>family</dt>
+<dd><p>Family of model to be used. Supported options are "gaussian" for a normal/Gaussian linear model and "binomial" for a logistic model.</p></dd>
 
 </dl></div>
     <div class="section level2">

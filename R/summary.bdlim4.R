@@ -33,6 +33,13 @@ summary.bdlim4 <- function(object, model=NULL, ...){
   # limit to selected model
   object <- object[[paste0("fit_",model)]]
 
+  #OR scale for binomial
+  if(object$family=="binomial"){
+    object$ce <- lapply(object$ce, exp)
+    object$dlfun <- lapply(object$dlfun, exp)
+    object$regcoef <- exp(object$regcoef)
+  }
+
   # summarize cumulative effect
   ce <- data.frame(
     group = object$names_groups,
@@ -77,6 +84,7 @@ summary.bdlim4 <- function(object, model=NULL, ...){
   out$regcoef <- regcoef
 
   # summarize covariates regression coefficients
+  if(object$family=="gaussian"){
   sigma <- data.frame(
     name = "sigma",
     mean = mean(object$sigma[iter_keep]),
@@ -87,6 +95,7 @@ summary.bdlim4 <- function(object, model=NULL, ...){
   )
   row.names(sigma) <- NULL
   out$sigma <- sigma
+  }
 
   # summarize covariates regression coefficients
   if(object$REmodel){
@@ -108,6 +117,8 @@ summary.bdlim4 <- function(object, model=NULL, ...){
   out$n <- object$n
 
   class(out) <- "summary.bdlim4"
+
+  out$family <- object$family
 
   return(out)
 }
@@ -145,6 +156,13 @@ summary.bdlim1 <- function(object, ...){
               call = object$call)
 
 
+  #OR scale for binomial
+  if(object$family=="binomial"){
+    object$ce <- exp(object$ce)
+    object$dlfun <- exp(object$dlfun)
+    object$regcoef <- exp(object$regcoef)
+  }
+
   # summarize cumulative effect
   ce <- data.frame(
     group = object$names_groups,
@@ -189,16 +207,18 @@ summary.bdlim1 <- function(object, ...){
   out$regcoef <- regcoef
 
   # summarize covariates regression coefficients
-  sigma <- data.frame(
-    name = "sigma",
-    mean = mean(object$sigma[iter_keep]),
-    median = median(object$sigma[iter_keep]),
-    sd = median(object$sigma[iter_keep]),
-    q2.5 = quantile(object$sigma[iter_keep], 0.025),
-    q97.5 = quantile(object$sigma[iter_keep], 0.975)
-  )
-  row.names(sigma) <- NULL
-  out$sigma <- sigma
+  if(object$family=="gaussian"){
+    sigma <- data.frame(
+      name = "sigma",
+      mean = mean(object$sigma[iter_keep]),
+      median = median(object$sigma[iter_keep]),
+      sd = median(object$sigma[iter_keep]),
+      q2.5 = quantile(object$sigma[iter_keep], 0.025),
+      q97.5 = quantile(object$sigma[iter_keep], 0.975)
+    )
+    row.names(sigma) <- NULL
+    out$sigma <- sigma
+  }
 
   # summarize covariates regression coefficients
   if(object$REmodel){
@@ -218,6 +238,8 @@ summary.bdlim1 <- function(object, ...){
   out$names_groups <- object$names_groups
 
   out$n <- object$n
+
+  out$family <- object$family
 
   class(out) <- "summary.bdlim1"
 

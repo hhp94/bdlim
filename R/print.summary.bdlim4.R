@@ -21,7 +21,9 @@ print.summary.bdlim4 <- function(x, ...){
   names(mc)[which.max(mc)] <- paste0("*",names(mc)[which.max(mc)],"*")
   print(mc)
 
-
+  if(x$family=="binomial"){
+    cat("\nParameter estimates from binomial models are exponentiated to be on the odds ratio (OR) scale.")
+  }
 
   cat("\n\nEstimated cumulative effects:\n")
   print(x$cumulative, row.names = FALSE)

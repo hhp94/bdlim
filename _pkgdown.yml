@@ -29,6 +29,7 @@ reference:
     desc:  Mostly helper function or functions unlikely to be used by end users
     contents:
       - bdlim1
+      - bdlim1_logistic
       - summary.bdlim1
       - print.bdlim1
       - makebasis

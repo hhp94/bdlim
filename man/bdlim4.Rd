@@ -14,7 +14,8 @@ bdlim4(
   nits,
   nburn = round(nits/2),
   nthin = 1,
-  parallel = TRUE
+  parallel = TRUE,
+  family = "gaussian"
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ bdlim4(
 \item{nthin}{Thinning factors for the MCMC. This is only used for WAIC in this function but is passed to summary and plot functions and used there.}
 
 \item{parallel}{Logical to use parallel computing for 4 models. If TRUE then the min of 4 and number of cores available will be used.}
+
+\item{family}{Family of model to be used. Supported options are "gaussian" for a normal/Gaussian linear model and "binomial" for a logistic model.}
 }
 \value{
 A list of results from each different pattern of modification and model compassion metrics
