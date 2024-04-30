@@ -209,7 +209,7 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
 
   # format
   colnames(regcoef_keep) <- colnames(design)
-  colnames(regcoef_keep)[1:n_groups] <- paste0("intercept","names_groups")
+  colnames(regcoef_keep)[1:n_groups] <- paste0("intercept",names_groups)
   colnames(w_keep) <- paste0("w_",rep(names_groups,each=n_times),"_",rep(1:n_times,n_groups))
 
   # summarize posterior for cumulative effect and distributed lag function
