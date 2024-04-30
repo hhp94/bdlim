@@ -22,7 +22,7 @@
 #' @return A list with posteriors of parameters
 #' @export
 
-bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, nburn=round(nits/2), nthin=1){
+bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits, nburn=round(nits/2), nthin=1){
 
   # make sure group is a factor variable
   if(!is.factor(group)){
@@ -39,7 +39,7 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
   # sort by group to make help with MCMC.
   # remove observations with missing values
   # drop unused levels
-  alldata <- droplevels(drop_na(cbind(y,group,covars,exposure), group))
+  alldata <- droplevels(drop_na(cbind(y,group,covars,exposure)), group)
   if(length(y)<nrow(alldata)){
     cat("Dropped",length(y)-nrow(alldata),"observations with missing values.")
   }
@@ -60,7 +60,7 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
   # dimensions
   n <- nrow(alldata)
   n_groups <- length(unique(alldata$group))
-  names_groups <- unique(alldata$group)
+  names_groups <- levels(alldata$group)
   n_times <- ncol(exposure)
 
   # design matrix for covariates and main effects of group
@@ -159,7 +159,9 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
 
       # log likelihood to start update of theta/w
       ll <- sum(dnorm(y[w_group_ids[[j]]],design[w_group_ids[[j]],] %*% regcoef, sigma, log=TRUE))
+      print(ll)
       threshold <- ll + log(runif(1))
+      print(threshold)
       ll <- threshold-1 # allows always to start loop
 
 
@@ -199,10 +201,11 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
     regcoef_keep[i,] <- regcoef
     sigma_keep[i] <- sigma
     REprec_keep[i] <- REprec
-    ll_sum_keep[i] <- sum(dnorm(y,design %*% regcoef,sigma, log=TRUE))
+    pred_mean_model_scale <- design %*% regcoef
+    ll_sum_keep[i] <- sum(dnorm(y,pred_mean_model_scale, sigma, log=TRUE))
 
     if(i %in% iter_keep){
-      ll_all_keep[,which(iter_keep==i)] <- dnorm(y,design %*% regcoef,sigma, log=TRUE)
+      ll_all_keep[,which(iter_keep==i)] <- dnorm(y,pred_mean_model_scale, sigma, log=TRUE)
     }
   }
 
@@ -239,6 +242,7 @@ bdlim1 <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df, nits, n
     nburn=nburn,
     nthin=nthin,
     REmodel=REmodel,
+    family="gaussian",
     call=match.call()
   )
 
