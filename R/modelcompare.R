@@ -19,7 +19,7 @@ modelcompare <- function(object){
   # add in any groups missing due to 0 probability
   temp <- object$loglik[1,]
   temp[] <- 0
-  temp[names(modelselect)] <- modelselect
+  temp[names(modelselect)] <- c(modelselect)
   temp <- unlist(temp/sum(temp))
 
   return(temp)
