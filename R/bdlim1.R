@@ -159,9 +159,7 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
 
       # log likelihood to start update of theta/w
       ll <- sum(dnorm(y[w_group_ids[[j]]],design[w_group_ids[[j]],] %*% regcoef, sigma, log=TRUE))
-      print(ll)
       threshold <- ll + log(runif(1))
-      print(threshold)
       ll <- threshold-1 # allows always to start loop
 
 
