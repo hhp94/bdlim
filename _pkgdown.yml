@@ -37,4 +37,4 @@ reference:
   - title: Data
     desc:  Data for examples (simulated)
     contents:
-      - simulated_birth_data_c1
+      - sbd_bdlim
