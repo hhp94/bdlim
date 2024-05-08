@@ -13,7 +13,7 @@ currently testing the package and building additional functionality. Background 
   _Biostatistics_, *18*(3), 537–552. ([DOI: 10.1093/biostatistics/kxx002](https://doi.org/10.1093/biostatistics/kxx002),
 [arXiv preprint](https://arxiv.org/abs/1612.05800))
 
-In short, BDLIM estimated a distributed lag model (DLM) with modification by a single categorical variable. The categorical variable can be binary or more than two levels, but BDLIM is not advised when there are a large number of categories. If you are instead interested in a DLM with modification by a single continuous variable see the [dlim](https://cran.r-project.org/web/packages/dlim/index.html) package. If you are interested in distributed lag models with heterogeneity by with multiple modifiers see the heterogeneous distributed lag model in the [dlmtree](https://github.com/danielmork/dlmtree) package.
+In short, BDLIM estimated a distributed lag model (DLM) with modification by a single categorical variable. The categorical variable can be binary or more than two levels, but BDLIM is not advised when there are a large number of categories. If you are instead interested in a DLM with modification by a single continuous variable see the [```dlim```](https://cran.r-project.org/web/packages/dlim/index.html) package (see website [here](https://ddemateis.github.io/dlim/)). If you are interested in distributed lag models with heterogeneity by with multiple modifiers see the heterogeneous distributed lag model in the [```dlmtree```](https://danielmork.github.io/dlmtree) package.
 
 This package includes several improvements over the previous software. Many of these improvements come from user feedback and more experiance applying the BDLIM to multiple datasets. These include:  
 
