@@ -14,7 +14,7 @@ Imports: dplyr, tidyr, LaplacesDemon, ggplot2, parallel, BayesLogit
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 BugReports: https://github.com/anderwilson/bdlim/issues/
-URL: https://anderwilson.github.io/bdlim/
+URL: https://anderwilson.github.io/bdlim/, https://github.com/AnderWilson/bdlim/
 Depends: 
     R (>= 2.10)
 LazyData: true
