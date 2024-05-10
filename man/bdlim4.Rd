@@ -48,7 +48,7 @@ A list of results from each different pattern of modification and model compassi
 Fit the BDLIM model with all 4 patterns of modification
 }
 \examples{
-
+\donttest{
 
 # run BDLIM with modification by ChildSex
 fit_sex <- bdlim4(
@@ -100,4 +100,5 @@ plot(sfit_hisp)
 sfit_hisp_bw <- summary(fit_hisp, model="bw")
 plot(sfit_hisp_bw)
 
+}
 }

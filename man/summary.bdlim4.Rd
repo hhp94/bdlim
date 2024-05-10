@@ -20,6 +20,8 @@ An object of class summary.bdlim2.
 Summary for bdlim4
 }
 \examples{
+\donttest{
+
 # run BDLIM with modification by ChildSex
 fit_sex <- bdlim4(
   y = sbd_bdlim$bwgaz,
@@ -46,4 +48,5 @@ sfit_hisp_b <- summary(fit_sex, model="b") # subgroup-specific effects (beta)
 sfit_hisp_w <- summary(fit_sex, model="w") # subgroup-specific weight function
 sfit_hisp_bw <- summary(fit_sex, model="bw") # both subgroup-specific
 
+}
 }

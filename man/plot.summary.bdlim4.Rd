@@ -18,7 +18,7 @@ An ggplot2 figure.
 Plot for Summary pf BDLIM
 }
 \examples{
-
+\donttest{
 
 # run BDLIM with modification by ChildSex
 fit_sex <- bdlim4(
@@ -49,4 +49,6 @@ plt + ggtitle("My plot with BDLIM") +
 
 # the summary file has the data to make this plot
 head(sfit_sex$dlfun)
+
+}
 }
