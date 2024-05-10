@@ -2,11 +2,11 @@
 
 # run BDLIM with modification by ChildSex
 fit_sex <- bdlim4(
-  y = simulated_birth_data_c1$bwgaz,
-  exposure = simulated_birth_data_c1[,paste0("pm25_",1:37)],
-  covars = simulated_birth_data_c1[,c("MomPriorBMI","MomAge","race","Hispanic",
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[,paste0("pm25_",1:37)],
+  covars = sbd_bdlim[,c("MomPriorBMI","MomAge","race","Hispanic",
                                    "EstMonthConcept","EstYearConcept")],
-  group = as.factor(simulated_birth_data_c1$ChildSex),
+  group = as.factor(sbd_bdlim$ChildSex),
   id = as.factor(rep(1:100,10)),
   df = 5,
   nits = 5000,
@@ -26,11 +26,11 @@ plot(sfit_sex)
 
 # run BDLIM with modification by Hispanic
 fit_hisp <- bdlim4(
-  y = simulated_birth_data_c1$bwgaz,
-  exposure = simulated_birth_data_c1[,paste0("pm25_",1:37)],
-  covars = simulated_birth_data_c1[,c("MomPriorBMI","MomAge","race","ChildSex",
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[,paste0("pm25_",1:37)],
+  covars = sbd_bdlim[,c("MomPriorBMI","MomAge","race","ChildSex",
                                       "EstMonthConcept","EstYearConcept")],
-  group = as.factor(simulated_birth_data_c1$Hispanic),
+  group = as.factor(sbd_bdlim$Hispanic),
   df = 5,
   nits = 5000,
   parallel = FALSE

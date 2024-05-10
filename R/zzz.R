@@ -1,5 +1,5 @@
 ###
-### R routines for the R package dlim (c)
+### R routines for the R package bdlim (c)
 #
 #' @importFrom utils packageDescription
 

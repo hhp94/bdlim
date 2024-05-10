@@ -22,11 +22,11 @@ Summary for bdlim4
 \examples{
 # run BDLIM with modification by ChildSex
 fit_sex <- bdlim4(
-  y = simulated_birth_data_c1$bwgaz,
-  exposure = simulated_birth_data_c1[,paste0("pm25_",1:37)],
-  covars = simulated_birth_data_c1[,c("MomPriorBMI","MomAge","race","Hispanic",
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[,paste0("pm25_",1:37)],
+  covars = sbd_bdlim[,c("MomPriorBMI","MomAge","race","Hispanic",
                                       "EstMonthConcept","EstYearConcept")],
-  group = as.factor(simulated_birth_data_c1$ChildSex),
+  group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
   nits = 5000,
   parallel = FALSE

@@ -7,3 +7,4 @@
 ^buildignore$
 ^vignettes/articles$
 ^testandsim$
+^\.github$

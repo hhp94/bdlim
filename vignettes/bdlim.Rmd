@@ -37,18 +37,18 @@ The code chunk below fits the model. In comparison to the examples, this uses a 
 
 ```{r fit model}
 # set seed so we get same results when rerunning
-set.seed(316)
+set.seed(1234)
 
 # fit model
 fit_sex <- bdlim4(
-  y = simulated_birth_data_c1$bwgaz,
-  exposure = simulated_birth_data_c1[,paste0("pm25_",1:37)],
-  covars = simulated_birth_data_c1[,c("MomPriorBMI","MomAge","race","Hispanic",
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[,paste0("pm25_",1:37)],
+  covars = sbd_bdlim[,c("MomPriorBMI","MomAge","race","Hispanic",
                                    "EstMonthConcept","EstYearConcept")],
-  group = as.factor(simulated_birth_data_c1$ChildSex),
+  group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
-  nits = 20000,
-  nthin = 1,
+  nits = 30000,
+  nthin = 15,
   parallel = FALSE
 )
 ```
