@@ -14,6 +14,7 @@ Code for fitting and interpreting Bayesian distributed lag interaction models (B
 Useful links:
 \itemize{
   \item \url{https://anderwilson.github.io/bdlim/}
+  \item \url{https://github.com/AnderWilson/bdlim/}
   \item Report bugs at \url{https://github.com/anderwilson/bdlim/issues/}
 }
 
