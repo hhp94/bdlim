@@ -4,13 +4,13 @@ template:
   includes:
     in_header: |
         <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-T7FV6T0218"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-YRZZ9BR6V4"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
 
-          gtag('config', 'G-T7FV6T0218');
+          gtag('config', 'G-YRZZ9BR6V4');
         </script>
 
 reference:
