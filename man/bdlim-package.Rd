@@ -10,6 +10,17 @@
 
 Code for fitting and interpreting Bayesian distributed lag interaction models (BDLIMs). A BDLIM regresses a scalar outcome on repeated measures of exposure and allows for modification by a categorical variable under four specific patterns of modification. The main function is bdlim(). There are also summary and plotting files. Details on methodology are described in Wilson et al. (2017) \doi{10.1093/biostatistics/kxx002}.
 }
+\details{
+The main function is \code{\link{bdlim4}}.
+}
+\references{
+Wilson A, Chiu YM, Hsu HL, Wright RO, Wright RJ, Coull BA (2017).
+“Bayesian distributed lag interaction models to identify perinatal windows
+of vulnerability in children's health.”
+\emph{Biostatistics}, 18(3), 537–552.
+\href{DOI: 10.1093/biostatistics/kxx002}{https://doi.org/10.1093/biostatistics/kxx002}.
+\href{arXiv preprint}{https://arxiv.org/abs/1612.05800}.
+}
 \seealso{
 Useful links:
 \itemize{
