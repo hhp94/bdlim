@@ -7,7 +7,6 @@ fit_sex <- bdlim4(
   covars = sbd_bdlim[,c("MomPriorBMI","MomAge","race","Hispanic",
                                    "EstMonthConcept","EstYearConcept")],
   group = as.factor(sbd_bdlim$ChildSex),
-  id = as.factor(rep(1:100,10)),
   df = 5,
   nits = 5000,
   parallel = FALSE
