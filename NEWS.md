@@ -1,3 +1,5 @@
+# bdlim 0.4.0
+
 # bdlim 0.3.1
 
 Update documentation.
