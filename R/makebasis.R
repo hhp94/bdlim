@@ -12,11 +12,7 @@
 #' @export
 #'
 #' @examples
-#'   # library(regimes)
-#'   # X <- as.matrix(AirPollWeekly[,paste0("PM25_",1:37)])
-#'   # B <- makebasis(X, df=4)
-#'   # matplot(B, type="l", xlab="exposure time", las=1)
-#'   # t(B)%*%B. # identity matrix
+#'   B <- makebasis(sbd_bdlim[,paste0("pm25_",1:37)], df=4)
 
 makebasis <- function(exposure,df){
   # make ns basis

@@ -20,34 +20,36 @@ This package includes several improvements over the previous software. Many of t
 * Simpler syntax
 * Updated options with some no longer recommended hyperparameter settings no longer available
 * Faster with options for parallel implementation
-* Summary and plot functions that provide more intuative results.
+* Summary and plot functions that provide more intuitive results.
 
 
 ### Installation
 
-Install from GitHub using the code below. If you want to build the vignette, use the ```devtools::install(build_vignettes = TRUE)``` option. Building the vignette will take a couple of minutes. Alternatively, you can use the online version available at [anderwilson.github.io/bdlim/articles/bdlim.html](https://anderwilson.github.io/bdlim/articles/bdlim.html). 
+The package can be installed from [CRAN](https://CRAN.R-project.org/package=bdlim) with the following code.
 
 ```r
-remotes::install_github("anderwilson/bdlim", devtools::install(build_vignettes = TRUE))
+install.packages("bdlim")
+```
+
+Alternatively, it can be installed from GitHub using the code below. 
+
+```r
+remotes::install_github("anderwilson/bdlim")
 ```
 
 
 ### Use
 
-A vignette can be accessed with the following code or accessed at [anderwilson.github.io/bdlim/articles/bdlim.html](https://anderwilson.github.io/bdlim/articles/bdlim.html). 
+A vignette can be accessed at [anderwilson.github.io/bdlim/articles/bdlim.html](https://anderwilson.github.io/bdlim/articles/bdlim.html). 
 
-```r
-library(bdlim)
-vignette("bdlim")
-```
 
-The main function is ```bdlim4```. See the help file for that function for a detailed example. The ```summary``` and ```plot``` functions can be used to make inference on the results. Specifically:
+The main function is ```bdlim4```. See the help file for that function for a simple example. The ```summary``` and ```plot``` functions can be used to make inference on the results. Specifically:
 
 * The model probabilities from the ```summary``` or indicate which pattern of heterogeneity is best supported by the data.
 * Cumulative effect estimates are provided in the ```summary``` function output.
 * The ```plot``` function show estimated distributed lag functions for each group. This returns a ggplot object that can be modified. See the help file example for ```plot.summary.bdlim4``` for an example that modifies the plot.
 * Estimates of the distributed lag functions are available in the summary object but are not printed in the console. See the help file for ```summary.bdlim4``` for an example.
 
-The example do not use parallel implementation. If you have 4 cores available (most computers do), try using the ```parallel=TRUE``` option.
+The example in the package do not use parallel implementation. If you have 4 cores available, try using the ```parallel=TRUE``` option.
 
 

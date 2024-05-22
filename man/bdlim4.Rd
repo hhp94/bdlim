@@ -14,7 +14,7 @@ bdlim4(
   nits,
   nburn = round(nits/2),
   nthin = 1,
-  parallel = TRUE,
+  parallel = FALSE,
   family = "gaussian"
 )
 }

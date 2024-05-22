@@ -1,4 +1,6 @@
-# bdlim 0.4.0
+# bdlim 0.4.1
+
+First CRAN release.
 
 # bdlim 0.3.1
 

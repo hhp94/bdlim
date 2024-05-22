@@ -23,7 +23,7 @@
 
 
 bdlim4 <- function(y, exposure, covars, group, id=NULL,
-                   df, nits, nburn=round(nits/2), nthin=1, parallel=TRUE,
+                   df, nits, nburn=round(nits/2), nthin=1, parallel=FALSE,
                    family="gaussian"){
 
   # make sure group is a factor variable
@@ -45,20 +45,20 @@ bdlim4 <- function(y, exposure, covars, group, id=NULL,
   # sequential  - Gaussian
   if(!parallel & toupper(family)=="GAUSSIAN"){
     out <- list()
-    cat("fitting bw\n")
+    message("fitting bw\n")
     out$fit_bw <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
-    cat("fitting b\n")
+    message("fitting b\n")
     out$fit_b <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
-    cat("fitting w\n")
+    message("fitting w\n")
     out$fit_w <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
-    cat("fitting n\n")
+    message("fitting n\n")
     out$fit_n <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
-    cat("postprocessing")
+    message("postprocessing")
   }
 
   # parallel - Gaussian
   if(parallel & toupper(family)=="GAUSSIAN"){
-    cat("fitting models in parallel with",min(detectCores(),4),"cores\n")
+    message("fitting models in parallel with",min(detectCores(),4),"cores\n")
     cl <- makeCluster(min(detectCores(),4))
     clusterExport(cl, varlist=c("bdlim1","y","exposure","covars","group","id","df","nits","nburn","nthin"), envir = environment())
     out <- parLapply(cl , 1:4, function(mod){
@@ -73,20 +73,20 @@ bdlim4 <- function(y, exposure, covars, group, id=NULL,
   # sequential  - logistic
   if(!parallel & toupper(family)=="BINOMIAL"){
     out <- list()
-    cat("fitting bw\n")
+    message("fitting bw\n")
     out$fit_bw <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
-    cat("fitting b\n")
+    message("fitting b\n")
     out$fit_b <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
-    cat("fitting w\n")
+    message("fitting w\n")
     out$fit_w <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
-    cat("fitting n\n")
+    message("fitting n\n")
     out$fit_n <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
-    cat("postprocessing")
+    message("postprocessing")
   }
 
   # parallel - logistic
   if(parallel & toupper(family)=="BINOMIAL"){
-    cat("fitting models in parallel with",min(detectCores(),4),"cores\n")
+    message("fitting models in parallel with",min(detectCores(),4),"cores\n")
     cl <- makeCluster(min(detectCores(),4))
     clusterExport(cl, varlist=c("bdlim1","y","exposure","covars","group","id","df","nits","nburn","nthin"), envir = environment())
     out <- parLapply(cl , 1:4, function(mod){
@@ -98,7 +98,7 @@ bdlim4 <- function(y, exposure, covars, group, id=NULL,
     names(out) <- c("fit_bw","fit_b","fit_w","fit_n")
   }
 
-  cat("postprocessing")
+  message("postprocessing")
 
   # likelihood comparison
   out$loglik <- data.frame(

@@ -42,7 +42,7 @@ bdlim1_logistic <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df
   # drop unused levels
   alldata <- droplevels(drop_na(cbind(y,group,covars,exposure), group))
   if(length(y)<nrow(alldata)){
-    cat("Dropped",length(y)-nrow(alldata),"observations with missing values.")
+    warning("Dropped",length(y)-nrow(alldata),"observations with missing values.")
   }
 
   # ADD random effect matrix here
@@ -143,7 +143,6 @@ bdlim1_logistic <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df
     # omega from PG augmentation
     w_pg <- rpg(n,1,pred_mean_model_scale)
 
-    # cat("\niteration",i,"\n")
     # update regression coefficients
     design_w <- t(scale(t(design),1/sqrt(w_pg), center=FALSE))
     V <- t(design_w) %*% design_w
@@ -158,7 +157,6 @@ bdlim1_logistic <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df
     }
 
     for(j in 1:n_weight_groups){
-      # cat("\nj",j,"\n")
 
       # log likelihood to start update of theta/w
       ll <- sum(dbinom(y[w_group_ids[[j]]], 1, 1/(1+exp(-design[w_group_ids[[j]],] %*% regcoef)), log=TRUE))

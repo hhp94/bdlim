@@ -41,7 +41,7 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
   # drop unused levels
   alldata <- droplevels(drop_na(cbind(y,group,covars,exposure)), group)
   if(length(y)<nrow(alldata)){
-    cat("Dropped",length(y)-nrow(alldata),"observations with missing values.")
+    warning("Dropped",length(y)-nrow(alldata),"observations with missing values.")
   }
 
   # ADD random effect matrix here
@@ -137,7 +137,7 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
 
 
   for(i in 1:nits){
-    # cat("\niteration",i,"\n")
+
     # update regression coefficients
     V <- t(design) %*% design/(sigma^2)
     diag(V) <- diag(V) + c(rep(REprec,nRE), rep(1/100,n_regcoef-nRE))
@@ -155,7 +155,6 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
     }
 
     for(j in 1:n_weight_groups){
-      # cat("\nj",j,"\n")
 
       # log likelihood to start update of theta/w
       ll <- sum(dnorm(y[w_group_ids[[j]]],design[w_group_ids[[j]],] %*% regcoef, sigma, log=TRUE))
