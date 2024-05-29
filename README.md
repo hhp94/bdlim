@@ -1,6 +1,7 @@
 # bdlim <img src="man/figures/logo.png" align="right" />
 
 [![CRAN status](https://www.r-pkg.org/badges/version/bdlim)](https://CRAN.R-project.org/package=bdlim)
+[![Downloads](https://cranlogs.r-pkg.org/badges/bdlim)](https://cran.rstudio.com/package=bdlim)
 
 
 ### Overview
