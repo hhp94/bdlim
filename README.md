@@ -1,9 +1,4 @@
-
-# bdlim
-
-
-
-# bdlim <img src="man/figures/logo.png" align="right" />
+# bdlim <a href="https://anderwilson.github.io/bdlim/"><img src="man/figures/logo.png" align="right" height="138" /></a>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/AnderWilson/bdlim/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/AnderWilson/bdlim/actions/workflows/R-CMD-check.yaml)
