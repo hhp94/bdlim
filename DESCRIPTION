@@ -1,6 +1,6 @@
 Package: bdlim
 Title: Bayesian Distributed Lag Interaction Models
-Version: 0.4.1
+Version: 0.4.2
 Date: 2024-05-22
 Authors@R: c(person(given = "Ander",
                    family = "Wilson",
