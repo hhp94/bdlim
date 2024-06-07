@@ -46,8 +46,8 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
   # remove observations with missing values
   # drop unused levels
   alldata <- droplevels(drop_na(cbind(y,group,covars,exposure)), group)
-  if(length(y)<nrow(alldata)){
-    warning("Dropped",length(y)-nrow(alldata),"observations with missing values.")
+  if(length(y)>nrow(alldata)){
+    warning("Dropped ",length(y)-nrow(alldata)," observations with missing values.", call.=FALSE)
   }
 
   if(length(levels(group)) != length(levels(alldata$group))) {
@@ -79,6 +79,9 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
 
   # exposure matrix
   exposure <- mm[,c(ncol(mm)+1-c(ncol(exposure):1))]
+
+  # outcome with na removed
+  y <- alldata[,"y"]
 
   # basis for weights
   basis <- makebasis(exposure,df=df)
