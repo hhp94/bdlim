@@ -1,7 +1,10 @@
-# bdlim <img src="man/figures/logo.png" align="right" />
+# bdlim <a href="https://anderwilson.github.io/bdlim/"><img src="man/figures/logo.png" align="right" height="138" /></a>
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/AnderWilson/bdlim/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/AnderWilson/bdlim/actions/workflows/R-CMD-check.yaml)
 [![CRAN status](https://www.r-pkg.org/badges/version/bdlim)](https://CRAN.R-project.org/package=bdlim)
-
+[![Downloads](https://cranlogs.r-pkg.org/badges/bdlim)](https://cran.rstudio.com/package=bdlim)
+<!-- badges: end -->
 
 ### Overview
 
