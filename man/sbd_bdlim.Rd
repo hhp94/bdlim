@@ -215,6 +215,6 @@ A data frame with 1000 rows (observations) and 202 variables:
 sbd_bdlim
 }
 \description{
-A dataset containing simulated birth data for examples with bdlim. Add outcome and covariate data is simulated. The exposure data is real exposure data. Therefore, it has realistic correlation structure. The exposures are consistent with the date of conception variables.
+A dataset containing simulated birth data for examples with bdlim. Add outcome and covariate data is simulated. The exposure data is real exposure data. Therefore, it has realistic correlation structure. The exposures are consistent with the date of conception variables. Each exposure is scaled by its IQR.
 }
 \keyword{datasets}
