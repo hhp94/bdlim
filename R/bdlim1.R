@@ -25,23 +25,33 @@
 bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits, nburn=round(nits/2), nthin=1){
 
   # make sure group is a factor variable
-  if(!is.factor(group)){
+  if (!is.factor(group)) {
     stop("group must be a factor variable.")
   }
 
-  # make sure covariates have names
-  if(is.null(colnames(covars))){
-    covars <- as.data.frame(covars)
-    colnames(covars) <- paste0("covar",1:ncol(covars))
+  # make sure exposure is a data.frame
+  exposure <- as.data.frame(exposure)
+  if (is.null(colnames(exposure))) {
+    colnames(exposure) <- paste0("exposure", 1:ncol(exposure))
   }
+
+  # make sure covariates have names
+  if (is.null(colnames(covars))) {
+    colnames(covars) <- paste0("covar", 1:ncol(covars))
+  }
+  covars <- as.data.frame(covars)
 
   # make design matrix for all data except exposures
   # sort by group to make help with MCMC.
   # remove observations with missing values
   # drop unused levels
   alldata <- droplevels(drop_na(cbind(y,group,covars,exposure)), group)
-  if(length(y)<nrow(alldata)){
-    warning("Dropped",length(y)-nrow(alldata),"observations with missing values.")
+  if(length(y)>nrow(alldata)){
+    warning("Dropped ",length(y)-nrow(alldata)," observations with missing values.", call.=FALSE)
+  }
+
+  if(length(levels(group)) != length(levels(alldata$group))) {
+    warning("Removing rows with missing values removed a level in the group")
   }
 
   # ADD random effect matrix here
@@ -70,12 +80,16 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
   # exposure matrix
   exposure <- mm[,c(ncol(mm)+1-c(ncol(exposure):1))]
 
+  # outcome with na removed
+  y <- alldata[,"y"]
+
   # basis for weights
   basis <- makebasis(exposure,df=df)
+  n_times <- nrow(basis) # or ncol(exposure)
 
   # preliminary weighted exposures
   # make flat for all groups
-  theta <- lm(rep(1/sqrt(37),37)~basis-1)$coef
+  theta <- lm(rep(1/sqrt(n_times),n_times)~basis-1)$coef
   w <- drop(basis%*%theta)
   w <- w / sqrt(sum(w^2))
   w <- w * sign(sum(w))
@@ -83,7 +97,6 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
   # starting values for weighted exposures
   # these are the same weightings for all groups
   E <- exposure %*% w
-
 
   # replicate if w is group specific
   if(w_free){
@@ -108,7 +121,6 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
   # add weighted exposures to design matrix.
   design <- cbind(design,Edesign*drop(E))
   n_regcoef <- ncol(design)
-
 
   # index for groups for weights
   # identifies which rows are in which weight groups

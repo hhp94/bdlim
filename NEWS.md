@@ -1,3 +1,9 @@
+# bdlim 0.4.2
+
+Bug fixes: 1) fix handling of missing data to avoid failing. 2) allow for different numbers of repeated measures of exposure by removing on instance of a hard coded number. 
+
+Minor updates to documentation.
+
 # bdlim 0.4.1
 
 First CRAN release.
