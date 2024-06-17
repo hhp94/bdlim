@@ -30,10 +30,10 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
   }
 
   # make sure exposure is a data.frame
-  exposure <- as.data.frame(exposure)
   if (is.null(colnames(exposure))) {
     colnames(exposure) <- paste0("exposure", 1:ncol(exposure))
   }
+  exposure <- as.data.frame(exposure)
 
   # make sure covariates have names
   if (is.null(colnames(covars))) {
