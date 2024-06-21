@@ -85,7 +85,6 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
 
   # basis for weights
   basis <- makebasis(exposure,df=df)
-  n_times <- nrow(basis) # or ncol(exposure)
 
   # preliminary weighted exposures
   # make flat for all groups
