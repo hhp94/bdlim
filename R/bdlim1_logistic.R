@@ -15,8 +15,6 @@
 #' @param nthin Thinning factors for the MCMC. This is only used for WAIC in this function but is passed to summary and plot functions and used there.
 #'
 #' @importFrom stats lm sd rnorm rgamma dbinom runif model.matrix
-#' @importFrom tidyr drop_na
-#' @importFrom dplyr arrange
 #' @importFrom LaplacesDemon WAIC
 #' @importFrom BayesLogit rpg
 #'
@@ -46,9 +44,13 @@ bdlim1_logistic <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df
   # sort by group to make help with MCMC.
   # remove observations with missing values
   # drop unused levels
-  alldata <- droplevels(drop_na(cbind(y,group,covars,exposure), group))
+  alldata <- droplevels(na.omit(cbind(y,group,covars,exposure), group))
   if(length(y)<nrow(alldata)){
     warning("Dropped",length(y)-nrow(alldata),"observations with missing values.")
+  }
+
+  if(length(levels(group)) != length(levels(alldata$group))) {
+    warning("Removing rows with missing values removed a level in the group")
   }
 
   # ADD random effect matrix here
