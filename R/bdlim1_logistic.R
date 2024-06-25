@@ -15,8 +15,6 @@
 #' @param nthin Thinning factors for the MCMC. This is only used for WAIC in this function but is passed to summary and plot functions and used there.
 #'
 #' @importFrom stats lm sd rnorm rgamma dbinom runif model.matrix
-#' @importFrom tidyr drop_na
-#' @importFrom dplyr arrange
 #' @importFrom LaplacesDemon WAIC
 #' @importFrom BayesLogit rpg
 #'
@@ -30,19 +28,29 @@ bdlim1_logistic <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df
     stop("group must be a factor variable.")
   }
 
-  # make sure covariates have names
-  if(is.null(colnames(covars))){
-    covars <- as.data.frame(covars)
-    colnames(covars) <- paste0("covar",1:ncol(covars))
+  # make sure exposure is a data.frame
+  if (is.null(colnames(exposure))) {
+    colnames(exposure) <- paste0("exposure", 1:ncol(exposure))
   }
+  exposure <- as.data.frame(exposure)
+
+  # make sure covariates have names
+  if (is.null(colnames(covars))) {
+    colnames(covars) <- paste0("covar", 1:ncol(covars))
+  }
+  covars <- as.data.frame(covars)
 
   # make design matrix for all data except exposures
   # sort by group to make help with MCMC.
   # remove observations with missing values
   # drop unused levels
-  alldata <- droplevels(drop_na(cbind(y,group,covars,exposure), group))
+  alldata <- droplevels(na.omit(cbind(y,group,covars,exposure), group))
   if(length(y)<nrow(alldata)){
     warning("Dropped",length(y)-nrow(alldata),"observations with missing values.")
+  }
+
+  if(length(levels(group)) != length(levels(alldata$group))) {
+    warning("Removing rows with missing values removed a level in the group")
   }
 
   # ADD random effect matrix here
@@ -76,7 +84,7 @@ bdlim1_logistic <- function(y, exposure, covars,group,id=NULL,w_free, b_free, df
 
   # preliminary weighted exposures
   # make flat for all groups
-  theta <- lm(rep(1/sqrt(37),37)~basis-1)$coef
+  theta <- lm(rep(1/sqrt(n_times),n_times)~basis-1)$coef
   w <- drop(basis%*%theta)
   w <- w / sqrt(sum(w^2))
   w <- w * sign(sum(w))

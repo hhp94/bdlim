@@ -15,8 +15,6 @@
 #' @param nthin Thinning factors for the MCMC. This is only used for WAIC in this function but is passed to summary and plot functions and used there.
 #'
 #' @importFrom stats lm sd rnorm rgamma dnorm runif model.matrix
-#' @importFrom tidyr drop_na
-#' @importFrom dplyr arrange
 #' @importFrom LaplacesDemon WAIC
 #'
 #' @return A list with posteriors of parameters
@@ -30,10 +28,10 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
   }
 
   # make sure exposure is a data.frame
-  exposure <- as.data.frame(exposure)
   if (is.null(colnames(exposure))) {
     colnames(exposure) <- paste0("exposure", 1:ncol(exposure))
   }
+  exposure <- as.data.frame(exposure)
 
   # make sure covariates have names
   if (is.null(colnames(covars))) {
@@ -45,7 +43,7 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
   # sort by group to make help with MCMC.
   # remove observations with missing values
   # drop unused levels
-  alldata <- droplevels(drop_na(cbind(y,group,covars,exposure)), group)
+  alldata <- droplevels(na.omit(cbind(y,group,covars,exposure)), group)
   if(length(y)>nrow(alldata)){
     warning("Dropped ",length(y)-nrow(alldata)," observations with missing values.", call.=FALSE)
   }
@@ -85,7 +83,6 @@ bdlim1 <- function(y, exposure, covars, group, id=NULL, w_free, b_free, df, nits
 
   # basis for weights
   basis <- makebasis(exposure,df=df)
-  n_times <- nrow(basis) # or ncol(exposure)
 
   # preliminary weighted exposures
   # make flat for all groups
