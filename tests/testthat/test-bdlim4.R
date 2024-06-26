@@ -105,4 +105,11 @@ test_that("bdlim4 model selection works", {
   )
   expect_true(all(c("fit_b", "fit_w") %in% names(new_fit_gaussian)))
   expect_true(all(!c("fit_bw", "fit_n") %in% names(new_fit_gaussian)))
+
+  sfit <- summary(new_fit_gaussian)
+  sfit_b <- summary(new_fit_gaussian, model = "b")
+
+  expect_identical(sfit, sfit_b)
+  # bw is not fitted, so summary model = "bw" won't work
+  expect_error(summary(new_fit_gaussian, model = "bw"))
 })

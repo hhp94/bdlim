@@ -18,7 +18,6 @@
 #' @export
 #'
 #' @example inst/examples/bdlim_example.R
-
 bdlim4 <- function(
     y,
     exposure,
@@ -138,10 +137,12 @@ bdlim4 <- function(
   return(out)
 }
 
-#' Validate Common Inputs of [bdlim4] and [bdlim1]
+#' Validate Common Inputs of [bdlim4()] and [bdlim1()]
 #'
 #' @inheritParams bdlim4
 #'
+#' @keywords internal
+#' @noRd
 #' @return NULL
 validate_bdlim <- function(
     y,
