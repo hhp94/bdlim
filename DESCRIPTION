@@ -11,13 +11,12 @@ Description: Estimation and interpretation of Bayesian distributed lag interacti
 License: GPL (>= 3)
 Encoding: UTF-8
 Imports: 
-    dplyr,
-    tidyr,
     LaplacesDemon,
     ggplot2,
     parallel,
     BayesLogit,
-    future.apply
+    future.apply,
+    future
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 BugReports: https://github.com/anderwilson/bdlim/issues/

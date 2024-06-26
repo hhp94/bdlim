@@ -8,8 +8,7 @@ fit_sex <- bdlim4(
                                       "EstMonthConcept","EstYearConcept")],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
-  nits = 5000,
-  parallel = FALSE
+  nits = 1000 # Set to 100 for example, increase in analysis
 )
 
 #summarize results

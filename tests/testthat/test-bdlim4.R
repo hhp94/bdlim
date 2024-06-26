@@ -17,6 +17,7 @@ test_that("validation works", {
       nits = 100,
       nburn = 50,
       nthin = 1,
+      nchains = 1,
       family = "GAUSSIAN"
     )
   )
@@ -32,6 +33,7 @@ test_that("validation works", {
       nits = 100,
       nburn = 50,
       nthin = 1,
+      nchains = 1,
       family = "BINOMIAL"
     )
   )
@@ -47,14 +49,14 @@ test_that("validation works", {
   #   nits = 100,
   #   nburn = 9,
   #   nthin = 1,
+  #   nchains = 1,
   #   family = "BINOMIAL"
   # )
 })
 
 test_that("bdlim4 didn't change from old results", {
-  skip("Manual testing")
   set.seed(1234)
-  old_fit_gaussian <- bdlim4(
+  old_fit_gaussian <- bdlim4_before(
     y = sbd_bdlim$bwgaz,
     exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
     covars = sbd_bdlim[, c("MomPriorBMI"), drop = FALSE],
@@ -64,7 +66,7 @@ test_that("bdlim4 didn't change from old results", {
   )
 
   set.seed(1234)
-  new_fit_gaussian <- bdlim4_test(
+  new_fit_gaussian <- bdlim4(
     y = sbd_bdlim$bwgaz,
     exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
     covars = sbd_bdlim[, c("MomPriorBMI"), drop = FALSE],
@@ -89,3 +91,18 @@ test_that("bdlim4 didn't change from old results", {
   expect_identical(old_fit_gaussian, new_fit_gaussian)
 })
 
+test_that("bdlim4 model selection works", {
+  # Only fitting model b, and w.
+  set.seed(1234)
+  new_fit_gaussian <- bdlim4(
+    y = sbd_bdlim$bwgaz,
+    exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+    covars = sbd_bdlim[, c("MomPriorBMI"), drop = FALSE],
+    model = c("b", "w"),
+    group = sbd_bdlim$ChildSex,
+    df = 5,
+    nits = 100
+  )
+  expect_true(all(c("fit_b", "fit_w") %in% names(new_fit_gaussian)))
+  expect_true(all(!c("fit_bw", "fit_n") %in% names(new_fit_gaussian)))
+})

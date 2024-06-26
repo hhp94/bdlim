@@ -17,13 +17,7 @@
 #'
 #' @return A list with posteriors of parameters
 #' @export
-
 bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, nits, nburn = round(nits / 2), nthin = 1) {
-  # make sure group is a factor variable
-  if (!is.factor(group)) {
-    stop("group must be a factor variable.")
-  }
-
   # make sure exposure is a data.frame
   if (is.null(colnames(exposure))) {
     colnames(exposure) <- paste0("exposure", 1:ncol(exposure))
@@ -40,7 +34,7 @@ bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, ni
   # sort by group to make help with MCMC.
   # remove observations with missing values
   # drop unused levels
-  alldata <- droplevels(na.omit(cbind(y, group, covars, exposure)), group)
+  alldata <- droplevels(stats::na.omit(cbind(y, group, covars, exposure)), group)
   if (length(y) > nrow(alldata)) {
     warning("Dropped ", length(y) - nrow(alldata), " observations with missing values.", call. = FALSE)
   }
