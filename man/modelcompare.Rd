@@ -7,7 +7,7 @@
 modelcompare(object)
 }
 \arguments{
-\item{object}{An object of class bdlim4 obtained from the bdlim4 function.}
+\item{object}{An object of class bdlim4 obtained from the \code{\link[=bdlim4]{bdlim4()}} function.}
 }
 \value{
 A vector of model probabilities.
