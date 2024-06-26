@@ -3,7 +3,7 @@ bdlim4_test <- function(
     exposure,
     covars,
     group,
-    inter.model = c("all", "bw", "b", "w", "n"),
+    model = c("all", "bw", "b", "w", "n"),
     id = NULL,
     df,
     nits,
@@ -14,9 +14,9 @@ bdlim4_test <- function(
   ) {
   family <- match.arg(family)
   family <- toupper(family)
-  inter.model <- match.arg(inter.model, several.ok = TRUE)
-  if ("all" %in% inter.model) {
-    inter.model <- c("bw", "b", "w", "n")
+  model <- match.arg(model, several.ok = TRUE)
+  if ("all" %in% model) {
+    model <- c("bw", "b", "w", "n")
   }
 
   # Validate input
@@ -51,8 +51,8 @@ bdlim4_test <- function(
     n = list(model = "n", w_free = FALSE, b_free = FALSE)
   )
 
-  model_params <- model_params[inter.model]
-  fit_names <- paste("fit", inter.model, sep = "_")
+  model_params <- model_params[model]
+  fit_names <- paste("fit", model, sep = "_")
 
   if (future::nbrOfWorkers() == 1) {
     message("fitting sequentially\n")
@@ -93,12 +93,12 @@ bdlim4_test <- function(
   # likelihood comparison
   out$loglik <- as.data.frame(lapply(fit_names, function(x) {
     out[[x]]$loglik
-  }), col.names = inter.model)
+  }), col.names = model)
 
   # WAIC comparison
   out$WAIC <- as.data.frame(lapply(fit_names, function(x) {
     out[[x]]$WAIC$WAIC
-  }), col.names = inter.model)
+  }), col.names = model)
 
   # compile results
   out$nits <- nits
