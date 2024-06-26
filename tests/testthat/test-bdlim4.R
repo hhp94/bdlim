@@ -112,4 +112,19 @@ test_that("bdlim4 model selection works", {
   expect_identical(sfit, sfit_b)
   # bw is not fitted, so summary model = "bw" won't work
   expect_error(summary(new_fit_gaussian, model = "bw"))
+
+  # Fit only 1 model
+  set.seed(1234)
+  fit_bw <- bdlim4(
+    y = sbd_bdlim$bwgaz,
+    exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+    covars = sbd_bdlim[, c("MomPriorBMI"), drop = FALSE],
+    model = c("bw"),
+    group = sbd_bdlim$ChildSex,
+    df = 5,
+    nits = 100
+  )
+
+  expect_no_error(summary(fit_bw))
+  expect_no_error(plot(summary(fit_bw)))
 })
