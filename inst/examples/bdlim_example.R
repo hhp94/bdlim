@@ -13,7 +13,7 @@ fit_sex <- bdlim4(
   ],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
-  nits = 1000 # Set to 100 for example, increase in analysis
+  nits = 100 # Set to 100 for example, increase in analysis
 )
 plan(sequential)
 

@@ -17,7 +17,7 @@ test_that("validation works", {
       nits = 100,
       nburn = 50,
       nthin = 1,
-      nchains = 1,
+      chains = 1,
       family = "GAUSSIAN"
     )
   )
@@ -33,7 +33,7 @@ test_that("validation works", {
       nits = 100,
       nburn = 50,
       nthin = 1,
-      nchains = 1,
+      chains = 1,
       family = "BINOMIAL"
     )
   )
@@ -49,7 +49,7 @@ test_that("validation works", {
   #   nits = 100,
   #   nburn = 9,
   #   nthin = 1,
-  #   nchains = 1,
+  #   chains = 1,
   #   family = "BINOMIAL"
   # )
 })

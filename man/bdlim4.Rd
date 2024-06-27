@@ -15,8 +15,7 @@ bdlim4(
   nits,
   nburn = round(nits/2),
   nthin = 1,
-  nchains = 1,
-  future_args = list(future.seed = TRUE),
+  chains = 1,
   family = c("gaussian", "binomial")
 )
 }
@@ -41,9 +40,7 @@ bdlim4(
 
 \item{nthin}{Thinning factor for MCMC. Used for WAIC, but also passed to summary and plot functions.}
 
-\item{nchains}{Number of parallel chains per model. Not yet implemented.}
-
-\item{future_args}{List of arguments passed to \code{\link[future.apply:future_lapply]{future.apply::future_lapply()}}.}
+\item{chains}{Number of parallel chains per model. Not yet implemented.}
 
 \item{family}{Model family to use. Supported options are "gaussian" for a normal/Gaussian linear model, and "binomial" for a logistic model.}
 }
@@ -69,7 +66,7 @@ fit_sex <- bdlim4(
   ],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
-  nits = 1000 # Set to 100 for example, increase in analysis
+  nits = 100 # Set to 100 for example, increase in analysis
 )
 plan(sequential)
 

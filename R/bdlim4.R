@@ -10,8 +10,7 @@
 #' @param nits Number of MCMC iterations.
 #' @param nburn Number of MCMC iterations to be discarded as burn-in. Defaults to half the total number of iterations. Used for WAIC, but also passed to summary and plot functions.
 #' @param nthin Thinning factor for MCMC. Used for WAIC, but also passed to summary and plot functions.
-#' @param nchains Number of parallel chains per model. Not yet implemented.
-#' @param future_args List of arguments passed to [future.apply::future_lapply()].
+#' @param chains Number of parallel chains per model. Not yet implemented.
 #' @param family Model family to use. Supported options are "gaussian" for a normal/Gaussian linear model, and "binomial" for a logistic model.
 #'
 #' @return A list of results from each pattern of modification, including model comparison metrics.
@@ -29,8 +28,7 @@ bdlim4 <- function(
     nits,
     nburn = round(nits / 2),
     nthin = 1,
-    nchains = 1,
-    future_args = list(future.seed = TRUE),
+    chains = 1,
     family = c("gaussian", "binomial")) {
   # Validate family and model
   family <- match.arg(family)
@@ -43,7 +41,7 @@ bdlim4 <- function(
   # Validate input
   validate_bdlim(
     y = y, exposure = exposure, covars = covars, group = group, id = id, df = df,
-    nits = nits, nburn = nburn, nthin = nthin, nchains = nchains, family = family
+    nits = nits, nburn = nburn, nthin = nthin, chains = chains, family = family
   )
 
   # Get the correct bdlim function
@@ -51,21 +49,6 @@ bdlim4 <- function(
     GAUSSIAN = bdlim1,
     BINOMIAL = bdlim1_logistic
   )
-
-  # Validate `future_args`
-  stopifnot("nits has to be larger than nburn" = nits > nburn)
-  stopifnot(
-    "future_args should be a named list of args. See ?future.apply::future_lapply" =
-      is.list(future_args) & !is.null(names(future_args))
-  )
-
-  if (!"future.seed" %in% names(future_args)) {
-    future_args <- c(future_args, list(future.seed = TRUE))
-  }
-
-  if (!future_args$future.seed) {
-    warning("Provide future.seed = TRUE to future_args to prevent unexpected behavior when running in parallel.")
-  }
 
   # Define the parameters of the 4 models
   model_params <- list(
@@ -85,8 +68,9 @@ bdlim4 <- function(
     f <- lapply
     future_args <- NULL
   } else {
-    f <- future.apply::future_lapply
     message("fitting in parallel\n")
+    f <- future.apply::future_lapply
+    future_args <- list(future.seed = TRUE)
   }
 
   # Fit each model. For each `model_params` element, fit the `bdlim1` function of the
@@ -154,7 +138,7 @@ validate_bdlim <- function(
     nits,
     nburn,
     nthin,
-    nchains,
+    chains,
     family = c("GAUSSIAN", "BINOMIAL")) {
   # Validate y
   family <- match.arg(family)
@@ -212,7 +196,7 @@ validate_bdlim <- function(
   }
 
   # Validate MCMC params, has to be positive integers.
-  params <- list(df = df, nits = nits, nburn = nburn, nthin = nthin, nchains = nchains)
+  params <- list(df = df, nits = nits, nburn = nburn, nthin = nthin, chains = chains)
   for (param_name in names(params)) {
     param_value <- params[[param_name]]
     if (!is.numeric(param_value) || length(param_value) != 1 || as.integer(param_value) != param_value || param_value <= 0) {

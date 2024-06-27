@@ -199,7 +199,7 @@ bdlim1_logistic <- function(y, exposure, covars, group, id = NULL, w_free, b_fre
     ll_sum_keep[i] <- sum(dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE))
 
     if (i %in% iter_keep) {
-      ll_all_keep[, which(iter_keep == i)] <- sum(dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE))
+      ll_all_keep[, which(iter_keep == i)] <- dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE)
     }
   }
 
