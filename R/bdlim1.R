@@ -1,16 +1,8 @@
-#' Fit the BDLIM model with 1 pattern of modification
+#' Fit the BDLIM model with 1 Pattern of Modification
 #'
-#' @param y A vector of outcomes
-#' @param exposure A matrix of exposures with one row for each individual
-#' @param covars A matrix or data.frame of covariates This should not include the grouping factor (see group below). This may include factor variables.
-#' @param group A vector of group memberships. This should be a factor variable.
-#' @param id An optional vector of individual IDs if there are repeated measures or other groupings that a random intercept should be included for. This must be a factor variable.
+#' @inheritParams bdlim4
 #' @param w_free Logical indicating if the weight functions are shared by all groups (FALSE) or group-specific (TRUE).
 #' @param b_free Logical indicating if the effect sizes are shared by all groups (FALSE) or group-specific (TRUE).
-#' @param df Degrees of freedom for the weight functions
-#' @param nits Number of MCMC iterations.
-#' @param nburn Number of MCMC iterations to be discarded as burn in. The default is half if the MCMC iterations. This is only used for WAIC in this function but is passed to summary and plot functions and used there.
-#' @param nthin Thinning factors for the MCMC. This is only used for WAIC in this function but is passed to summary and plot functions and used there.
 #'
 #' @importFrom stats lm sd rnorm rgamma dnorm runif model.matrix
 #' @importFrom LaplacesDemon WAIC
@@ -20,41 +12,38 @@
 bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nburn, nthin, chains, family) {
   # make sure exposure is a data.frame
   if (is.null(colnames(exposure))) {
-    colnames(exposure) <- paste0("exposure", 1:ncol(exposure))
+    colnames(exposure) <- paste0("exposure", seq_len(ncol(exposure)))
   }
   exposure <- as.data.frame(exposure)
 
   # make sure covariates have names
   if (is.null(colnames(covars))) {
-    colnames(covars) <- paste0("covar", 1:ncol(covars))
+    colnames(covars) <- paste0("covar", seq_len(ncol(covars)))
   }
   covars <- as.data.frame(covars)
+
+  # switch between family
   f <- switch(family,
     gaussian = bdlim1_gaussian,
-    binomial = bdlim1_logistic
+    binomial = bdlim1_logistic,
+    stop("Unsupported Family")
   )
 
-  # make design matrix for all data except exposures
-  # sort by group to make help with MCMC.
-  # remove observations with missing values
-  # drop unused levels
-  alldata <- droplevels(stats::na.omit(cbind(y, group, covars, exposure)), group)
-  if (length(y) > nrow(alldata)) {
-    warning("Dropped ", length(y) - nrow(alldata), " observations with missing values.", call. = FALSE)
-  }
+  # bind all data into one data.frame
+  alldata <- droplevels(cbind(y, group, covars, exposure))
 
-  if (length(levels(group)) != length(levels(alldata$group))) {
-    warning("Removing rows with missing values removed a level in the group")
-  }
-
-  # ADD random effect matrix here
+  # add random effect matrix here
   if (!is.null(id)) {
+    id <- droplevels(id)
     RE <- model.matrix(~ id - 1)
+    colnames(RE) <- paste("re", seq_len(ncol(RE)))
     RElocation <- 1:ncol(RE)
     alldata <- cbind(RE, alldata)
     REmodel <- TRUE
     nRE <- ncol(RE)
   } else {
+    RE <- NULL
+    RElocation <- NULL
     REmodel <- FALSE
     nRE <- 0
   }
