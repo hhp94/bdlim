@@ -30,18 +30,30 @@ bdlim4 <- function(
     nthin = 1,
     chains = 1,
     family = c("gaussian", "binomial")) {
-  # Validate family and model
+  # Pre-liminary validation
   family <- match.arg(family)
   model <- unique(match.arg(model, several.ok = TRUE))
   if ("all" %in% model) {
     model <- c("bw", "b", "w", "n")
   }
+  exposure <- as.matrix(exposure)
 
   # Validate input
   validate_bdlim(
     y = y, exposure = exposure, covars = covars, group = group, id = id, df = df,
     nits = nits, nburn = nburn, nthin = nthin, chains = chains, family = family
   )
+
+  if (is.null(colnames(exposure))) {
+    colnames(exposure) <- paste0("exposure", seq_len(ncol(exposure)))
+  }
+
+  if(!is.null(covars)) {
+    if (is.null(colnames(covars))) {
+      colnames(covars) <- paste0("covar", seq_len(ncol(covars)))
+    }
+    covars <- as.data.frame(covars)
+  }
 
   # Define the parameters of the 4 models
   model_params <- list(
@@ -151,12 +163,8 @@ validate_bdlim <- function(
   }
 
   # Validate `exposure`
-  if (!is.data.frame(exposure) && !is.matrix(exposure)) {
-    stop("`exposure` should be a data.frame or matrix, not ", paste(class(exposure), collapse = ", "))
-  }
-  if (is.matrix(exposure) && !is.numeric(exposure)) stop("`exposure` has to be numeric")
-  if (is.data.frame(exposure) && any(vapply(exposure, function(x) !is.numeric(x), logical(1)))) {
-    stop("`exposure` has to be numeric")
+  if (!is.matrix(exposure) && !is.numeric(exposure)) {
+    stop("`exposure` should only contains numeric values")
   }
   if (is.null(colnames(exposure))) warning("`exposure` should be named.")
 
@@ -166,7 +174,7 @@ validate_bdlim <- function(
       stop("`covars` should be a data.frame or matrix, not ", paste(class(covars), collapse = ", "))
     }
     if (is.matrix(covars) && is.character(covars)) {
-      warning("`covars` is a matrix of characters (all covariates are factors). This is probably unintended.")
+      stop("`covars` is a matrix of characters (all covariates are factors). If this is intended, pass `as.data.frame(covars)` instead.")
     }
     if (is.null(colnames(covars))) warning("`covars` should be named.")
   }
@@ -181,7 +189,7 @@ validate_bdlim <- function(
     # If `covars` is a matrix then we know it doesn't have factor variables. Here we check
     # to see if the grouping variable is included in `covars`
     if (is.data.frame(covars)) {
-      factor_columns <- which(vapply(covars, is.factor, logical(1)))
+      factor_columns <- which(vapply(covars, function(x) is.factor(x) || is.character(x), logical(1)))
       for (i in factor_columns) {
         if (all(as.character(covars[[i]]) == as.character(group))) {
           stop("The same variable as the grouping variable is detected in `covars`.")
@@ -231,3 +239,9 @@ validate_bdlim <- function(
 
   return(0)
 }
+
+# Changes
+# * Further input validation
+# * Change parallel backend to {future}
+# * Lots of changes to bdlim4
+# * Added initial changes to allow covars to be NULL
