@@ -32,7 +32,6 @@ bdlim4 <- function(
     family = c("gaussian", "binomial")) {
   # Validate family and model
   family <- match.arg(family)
-  family <- toupper(family)
   model <- unique(match.arg(model, several.ok = TRUE))
   if ("all" %in% model) {
     model <- c("bw", "b", "w", "n")
@@ -42,12 +41,6 @@ bdlim4 <- function(
   validate_bdlim(
     y = y, exposure = exposure, covars = covars, group = group, id = id, df = df,
     nits = nits, nburn = nburn, nthin = nthin, chains = chains, family = family
-  )
-
-  # Get the correct bdlim function
-  bdlim1_fam <- switch(family,
-    GAUSSIAN = bdlim1,
-    BINOMIAL = bdlim1_logistic
   )
 
   # Define the parameters of the 4 models
@@ -81,7 +74,7 @@ bdlim4 <- function(
       X = model_params,
       FUN = function(m) {
         message(paste0("fitting ", m$model, "\n"))
-        bdlim1_fam(
+        bdlim1(
           y = y,
           exposure = exposure,
           covars = covars,
@@ -92,7 +85,9 @@ bdlim4 <- function(
           df = df,
           nits = nits,
           nburn = nburn,
-          nthin = nthin
+          nthin = nthin,
+          chains = chains,
+          family = family
         )
       }
     ), future_args)

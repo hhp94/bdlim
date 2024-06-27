@@ -17,7 +17,7 @@
 #'
 #' @return A list with posteriors of parameters
 #' @export
-bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, nits, nburn = round(nits / 2), nthin = 1) {
+bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nburn, nthin, chains, family) {
   # make sure exposure is a data.frame
   if (is.null(colnames(exposure))) {
     colnames(exposure) <- paste0("exposure", 1:ncol(exposure))
@@ -29,6 +29,10 @@ bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, ni
     colnames(covars) <- paste0("covar", 1:ncol(covars))
   }
   covars <- as.data.frame(covars)
+  f <- switch(family,
+    gaussian = bdlim1_gaussian,
+    binomial = bdlim1_logistic
+  )
 
   # make design matrix for all data except exposures
   # sort by group to make help with MCMC.
@@ -121,19 +125,76 @@ bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, ni
   }
 
   # starting values for other parameters
-  sigma <- sd(y)
   REprec <- 0.01
 
   # place to store results
   regcoef_keep <- matrix(NA, nits, n_regcoef)
   w_keep <- matrix(NA, nits, n_times * n_groups)
-  ll_sum_keep <- sigma_keep <- REprec_keep <- rep(NA, nits)
+  ll_sum_keep <- REprec_keep <- rep(NA, nits)
 
   # iterations to be kept
   # this is only used for waic
   iter_keep <- seq(nburn + 1, nits, by = nthin)
   ll_all_keep <- matrix(NA, n, length(iter_keep))
 
+  out <- future.apply::future_lapply(
+    seq_len(chains),
+    \(x) {
+
+    },
+    future.seed = TRUE
+  )
+
+  out <- c(
+    out,
+    list(
+      WAIC = WAIC(out$ll_all_keep),
+      n = n,
+      nits = nits,
+      nburn = nburn,
+      nthin = nthin,
+      REmodel = REmodel,
+      family = family,
+      call = match.call()
+    )
+  )
+
+  class(out) <- "bdlim1"
+
+  return(out)
+}
+
+bdlim1_gaussian <- function(
+    y,
+    nits,
+    design,
+    nRE,
+    REprec,
+    n_regcoef,
+    REmodel,
+    RElocation,
+    n_weight_groups,
+    w_group_ids,
+    theta,
+    df,
+    basis,
+    Edesign,
+    exposure,
+    w_keep,
+    regcoef_keep,
+    REprec_keep,
+    ll_sum_keep,
+    ll_all_keep,
+    names_groups,
+    n_times,
+    b_free,
+    n_groups,
+    iter_keep) {
+  # starting values specific for `bdlim1_gaussian`
+  n <- length(y)
+  sigma <- sd(y)
+  sigma_keep <- rep(NA, nits)
+  pred_mean_model_scale <- NA
 
   for (i in 1:nits) {
     # update regression coefficients
@@ -142,7 +203,6 @@ bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, ni
     V <- chol2inv(chol(V))
     m <- drop(V %*% (t(design) %*% y)) / (sigma^2)
     regcoef <- drop(m + t(chol(V)) %*% rnorm(n_regcoef))
-
 
     # update sigma for Gaussian model
     sigma <- 1 / sqrt(rgamma(1, .5 + n / 2, .5 + sum((y - design %*% regcoef)^2) / 2))
@@ -157,7 +217,6 @@ bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, ni
       ll <- sum(dnorm(y[w_group_ids[[j]]], design[w_group_ids[[j]], ] %*% regcoef, sigma, log = TRUE))
       threshold <- ll + log(runif(1))
       ll <- threshold - 1 # allows always to start loop
-
 
       # vector for ellipse
       nu <- matrix(rnorm(df), 1, df)
@@ -225,18 +284,12 @@ bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, ni
     regcoef = regcoef_keep[, (nRE + 1):n_regcoef],
     sigma = sigma_keep,
     loglik = ll_sum_keep,
+    ll_all_keep = ll_all_keep,
     names_groups = names_groups,
     n_times = n_times,
     dlfun = dlfun,
     ce = ce,
-    WAIC = WAIC(ll_all_keep),
-    n = length(y),
-    nits = nits,
-    nburn = nburn,
-    nthin = nthin,
-    REmodel = REmodel,
-    family = "gaussian",
-    call = match.call()
+    REmodel = REmodel
   )
 
   if (REmodel) {
@@ -244,7 +297,158 @@ bdlim1 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, ni
     out$REsd <- 1 / sqrt(REprec_keep)
   }
 
-  class(out) <- "bdlim1"
+  return(out)
+}
+
+bdlim1_logistic <- function(
+    y,
+    nits,
+    design,
+    nRE,
+    REprec,
+    n_regcoef,
+    REmodel,
+    RElocation,
+    n_weight_groups,
+    w_group_ids,
+    theta,
+    df,
+    basis,
+    Edesign,
+    exposure,
+    w_keep,
+    regcoef_keep,
+    REprec_keep,
+    ll_sum_keep,
+    ll_all_keep,
+    names_groups,
+    n_times,
+    b_free,
+    n_groups,
+    iter_keep) {
+  n <- length(y)
+  # set linear predictor to 0 for starting values
+  pred_mean_model_scale <- rep(0, n)
+
+  for (i in 1:nits) {
+    # omega from PG augmentation
+    w_pg <- rpg(n, 1, pred_mean_model_scale)
+
+    # update regression coefficients
+    design_w <- t(scale(t(design), 1 / sqrt(w_pg), center = FALSE))
+    V <- t(design_w) %*% design_w
+    diag(V) <- diag(V) + c(rep(REprec, nRE), rep(1 / 100, n_regcoef - nRE))
+    V <- chol2inv(chol(V))
+    m <- drop(V %*% (t(design) %*% (y - .5)))
+    regcoef <- drop(m + t(chol(V)) %*% rnorm(n_regcoef))
+
+    # update random effect variance if a RE model
+    if (REmodel) {
+      REprec <- rgamma(1, .5 + nRE / 2, .5 + sum(regcoef[RElocation]^2) / 2)
+    }
+
+    for (j in 1:n_weight_groups) {
+      # log likelihood to start update of theta/w
+      ll <- sum(dbinom(y[w_group_ids[[j]]], 1, 1 / (1 + exp(-design[w_group_ids[[j]], ] %*% regcoef)), log = TRUE))
+      threshold <- ll + log(runif(1))
+      ll <- threshold - 1 # allows always to start loop
+
+
+      # vector for ellipse
+      nu <- matrix(rnorm(df), 1, df)
+      eta_max <- eta <- runif(1, 0, 2 * pi)
+      eta_min <- eta_max - 2 * pi
+
+      while (ll < threshold) {
+        # proposed coefficients and normalized weights
+        theta_prop <- theta[j, ] * cos(eta) + nu * sin(eta)
+        w[j, ] <- drop(basis %*% c(theta_prop))
+        w[j, ] <- w[j, ] / sqrt(sum(w[j, ]^2))
+        w[j, ] <- w[j, ] * sign(sum(w[j, ]))
+
+        # update weighted exposures for this group
+        design[w_group_ids[[j]], colnames(Edesign)] <- as.matrix(Edesign[w_group_ids[[j]], ]) * drop(exposure[w_group_ids[[j]], ] %*% w[j, ])
+
+        # log likelihood
+        ll <- sum(dbinom(y[w_group_ids[[j]]], 1, 1 / (1 + exp(-design[w_group_ids[[j]], ] %*% regcoef)), log = TRUE))
+        # adjust eta in case repeat
+        if (eta < 0) {
+          eta_min <- eta
+        } else {
+          eta_max <- eta
+        }
+        eta <- runif(1, eta_min, eta_max)
+      }
+
+      # update theta (w and design are already updated)
+      theta[j, ] <- theta_prop
+    }
+
+    # save values
+    w_keep[i, ] <- c(t(w))
+    regcoef_keep[i, ] <- regcoef
+    REprec_keep[i] <- REprec
+    pred_mean_model_scale <- design %*% regcoef
+    ll_sum_keep[i] <- sum(dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE))
+
+    if (i %in% iter_keep) {
+      ll_all_keep[, which(iter_keep == i)] <- dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE)
+    }
+  }
+
+  # format
+  colnames(regcoef_keep) <- colnames(design)
+  colnames(regcoef_keep)[1:n_groups] <- paste0("intercept", names_groups)
+  colnames(w_keep) <- paste0("w_", rep(names_groups, each = n_times), "_", rep(1:n_times, n_groups))
+
+  # summarize posterior for cumulative effect and distributed lag function
+  dlfun <- ce <- list()
+  for (i in names_groups) {
+    w_temp <- w_keep[, paste0("w_", i, "_", 1:n_times)]
+    if (b_free) {
+      E_temp <- regcoef_keep[, paste0("E", i)]
+    } else {
+      E_temp <- regcoef_keep[, "E"]
+    }
+    dlfun[[i]] <- w_temp * E_temp
+    ce[[i]] <- rowSums(dlfun[[i]])
+  }
+
+  # format
+  colnames(regcoef_keep) <- colnames(design)
+  colnames(regcoef_keep)[1:n_groups] <- paste0("intercept", names_groups)
+  colnames(w_keep) <- paste0("w_", rep(names_groups, each = n_times), "_", rep(1:n_times, n_groups))
+
+  # summarize posterior for cumulative effect and distributed lag function
+  dlfun <- ce <- list()
+  for (i in names_groups) {
+    w_temp <- w_keep[, paste0("w_", i, "_", 1:n_times)]
+    if (b_free) {
+      E_temp <- regcoef_keep[, paste0("E", i)]
+    } else {
+      E_temp <- regcoef_keep[, "E"]
+    }
+    dlfun[[i]] <- w_temp * E_temp
+    ce[[i]] <- rowSums(dlfun[[i]])
+  }
+
+  out <- list(
+    w = w_keep,
+    regcoef = regcoef_keep[, (nRE + 1):n_regcoef],
+    sigma = NA,
+    loglik = ll_sum_keep,
+    ll_all_keep = ll_all_keep,
+    names_groups = names_groups,
+    n_times = n_times,
+    dlfun = dlfun,
+    ce = ce,
+    REmodel = REmodel
+  )
+
+  if (REmodel) {
+    out$RE <- regcoef_keep[, 1:nRE]
+    out$REsd <- 1 / sqrt(REprec_keep)
+  }
 
   return(out)
 }
