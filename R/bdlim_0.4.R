@@ -18,7 +18,7 @@
 #' @keywords internal
 #' @noRd
 #' @return A list with posteriors of parameters
-bdlim1_before <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, nits, nburn = round(nits / 2), nthin = 1) {
+bdlim1_0.4 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, nits, nburn = round(nits / 2), nthin = 1) {
   # make sure group is a factor variable
   if (!is.factor(group)) {
     stop("group must be a factor variable.")
@@ -250,7 +250,7 @@ bdlim1_before <- function(y, exposure, covars, group, id = NULL, w_free, b_free,
     out$REsd <- 1 / sqrt(REprec_keep)
   }
 
-  class(out) <- "bdlim1"
+  class(out) <- "bdlim1_0.4"
 
   return(out)
 }
@@ -276,7 +276,7 @@ bdlim1_before <- function(y, exposure, covars, group, id = NULL, w_free, b_free,
 #' @keywords internal
 #' @noRd
 #' @return A list with posteriors of parameters
-bdlim1_logistic_before <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, nits, nburn = round(nits / 2), nthin = 1) {
+bdlim1_0.4_logistic <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df, nits, nburn = round(nits / 2), nthin = 1) {
   # make sure group is a factor variable
   if (!is.factor(group)) {
     stop("group must be a factor variable.")
@@ -462,7 +462,7 @@ bdlim1_logistic_before <- function(y, exposure, covars, group, id = NULL, w_free
     ll_sum_keep[i] <- sum(dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE))
 
     if (i %in% iter_keep) {
-      ll_all_keep[, which(iter_keep == i)] <- sum(dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE))
+      ll_all_keep[, which(iter_keep == i)] <- dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE)
     }
   }
 
@@ -508,11 +508,10 @@ bdlim1_logistic_before <- function(y, exposure, covars, group, id = NULL, w_free
     out$REsd <- 1 / sqrt(REprec_keep)
   }
 
-  class(out) <- "bdlim1"
+  class(out) <- "bdlim1_0.4"
 
   return(out)
 }
-
 
 #' Fit the BDLIM model with all 4 patterns of modification
 #'
@@ -535,97 +534,99 @@ bdlim1_logistic_before <- function(y, exposure, covars, group, id = NULL, w_free
 #' @keywords internal
 #' @noRd
 #' @example inst/examples/bdlim_example.R
-bdlim4_before <- function(y, exposure, covars, group, id=NULL,
-                   df, nits, nburn=round(nits/2), nthin=1, parallel=FALSE,
-                   family="gaussian"){
-
+bdlim4_0.4 <- function(y, exposure, covars, group, id = NULL,
+                       df, nits, nburn = round(nits / 2), nthin = 1, parallel = FALSE,
+                       family = "gaussian") {
   # make sure group is a factor variable
-  # this is redundant with bdlim1 but makes the error message clearer to place here also
-  if(!is.factor(group)){
+  # this is redundant with bdlim1_0.4 but makes the error message clearer to place here also
+  if (!is.factor(group)) {
     stop("group must be a factor variable.")
   }
 
   # make sure id is factor
-  if(!is.null(id)){
-    if(!is.factor(id)){
+  if (!is.null(id)) {
+    if (!is.factor(id)) {
       stop("id must be a factor variable.")
     }
   }
 
-
   # fit each model
 
   # sequential  - Gaussian
-  if(!parallel & toupper(family)=="GAUSSIAN"){
+  if (!parallel & toupper(family) == "GAUSSIAN") {
     out <- list()
     message("fitting bw\n")
-    out$fit_bw <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    out$fit_bw <- bdlim1_0.4(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
     message("fitting b\n")
-    out$fit_b <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    out$fit_b <- bdlim1_0.4(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
     message("fitting w\n")
-    out$fit_w <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    out$fit_w <- bdlim1_0.4(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
     message("fitting n\n")
-    out$fit_n <- bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    out$fit_n <- bdlim1_0.4(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
     message("postprocessing")
   }
 
   # parallel - Gaussian
-  if(parallel & toupper(family)=="GAUSSIAN"){
-    message("fitting models in parallel with",min(detectCores(),4),"cores\n")
-    cl <- makeCluster(min(detectCores(),4))
-    clusterExport(cl, varlist=c("bdlim1","y","exposure","covars","group","id","df","nits","nburn","nthin"), envir = environment())
-    out <- parLapply(cl , 1:4, function(mod){
-      bdlim1(y = y, exposure = exposure, covars = covars, group = group, id = id,
-             w_free = c(TRUE,FALSE,TRUE,FALSE)[mod], b_free =  c(TRUE,TRUE,FALSE,FALSE)[mod],
-             df = df, nits = nits, nburn = nburn, nthin = nthin)
+  if (parallel & toupper(family) == "GAUSSIAN") {
+    message("fitting models in parallel with", min(detectCores(), 4), "cores\n")
+    cl <- makeCluster(min(detectCores(), 4))
+    clusterExport(cl, varlist = c("bdlim1_0.4", "y", "exposure", "covars", "group", "id", "df", "nits", "nburn", "nthin"), envir = environment())
+    out <- parLapply(cl, 1:4, function(mod) {
+      bdlim1_0.4(
+        y = y, exposure = exposure, covars = covars, group = group, id = id,
+        w_free = c(TRUE, FALSE, TRUE, FALSE)[mod], b_free = c(TRUE, TRUE, FALSE, FALSE)[mod],
+        df = df, nits = nits, nburn = nburn, nthin = nthin
+      )
     })
     stopCluster(cl)
-    names(out) <- c("fit_bw","fit_b","fit_w","fit_n")
+    names(out) <- c("fit_bw", "fit_b", "fit_w", "fit_n")
   }
 
   # sequential  - logistic
-  if(!parallel & toupper(family)=="BINOMIAL"){
+  if (!parallel & toupper(family) == "BINOMIAL") {
     out <- list()
     message("fitting bw\n")
-    out$fit_bw <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    out$fit_bw <- bdlim1_0.4_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
     message("fitting b\n")
-    out$fit_b <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    out$fit_b <- bdlim1_0.4_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = TRUE, df = df, nits = nits, nburn = nburn, nthin = nthin)
     message("fitting w\n")
-    out$fit_w <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    out$fit_w <- bdlim1_0.4_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = TRUE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
     message("fitting n\n")
-    out$fit_n <- bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
+    out$fit_n <- bdlim1_0.4_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id, w_free = FALSE, b_free = FALSE, df = df, nits = nits, nburn = nburn, nthin = nthin)
     message("postprocessing")
   }
 
   # parallel - logistic
-  if(parallel & toupper(family)=="BINOMIAL"){
-    message("fitting models in parallel with",min(detectCores(),4),"cores\n")
-    cl <- makeCluster(min(detectCores(),4))
-    clusterExport(cl, varlist=c("bdlim1","y","exposure","covars","group","id","df","nits","nburn","nthin"), envir = environment())
-    out <- parLapply(cl , 1:4, function(mod){
-      bdlim1_logistic(y = y, exposure = exposure, covars = covars, group = group, id = id,
-                      w_free = c(TRUE,FALSE,TRUE,FALSE)[mod], b_free =  c(TRUE,TRUE,FALSE,FALSE)[mod],
-                      df = df, nits = nits, nburn = nburn, nthin = nthin)
+  if (parallel & toupper(family) == "BINOMIAL") {
+    message("fitting models in parallel with", min(detectCores(), 4), "cores\n")
+    cl <- makeCluster(min(detectCores(), 4))
+    clusterExport(cl, varlist = c("bdlim1_0.4", "y", "exposure", "covars", "group", "id", "df", "nits", "nburn", "nthin"), envir = environment())
+    out <- parLapply(cl, 1:4, function(mod) {
+      bdlim1_0.4_logistic(
+        y = y, exposure = exposure, covars = covars, group = group, id = id,
+        w_free = c(TRUE, FALSE, TRUE, FALSE)[mod], b_free = c(TRUE, TRUE, FALSE, FALSE)[mod],
+        df = df, nits = nits, nburn = nburn, nthin = nthin
+      )
     })
     stopCluster(cl)
-    names(out) <- c("fit_bw","fit_b","fit_w","fit_n")
+    names(out) <- c("fit_bw", "fit_b", "fit_w", "fit_n")
   }
 
   message("postprocessing")
 
   # likelihood comparison
   out$loglik <- data.frame(
-    bw=out$fit_bw$loglik,
-    b=out$fit_b$loglik,
-    w=out$fit_w$loglik,
-    n=out$fit_n$loglik
+    bw = out$fit_bw$loglik,
+    b = out$fit_b$loglik,
+    w = out$fit_w$loglik,
+    n = out$fit_n$loglik
   )
 
   out$WAIC <- data.frame(
-    bw=out$fit_bw$WAIC$WAIC,
-    b=out$fit_b$WAIC$WAIC,
-    w=out$fit_w$WAIC$WAIC,
-    n=out$fit_n$WAIC$WAIC
+    bw = out$fit_bw$WAIC$WAIC,
+    b = out$fit_b$WAIC$WAIC,
+    w = out$fit_w$WAIC$WAIC,
+    n = out$fit_n$WAIC$WAIC
   )
 
   # compile results
@@ -634,8 +635,7 @@ bdlim4_before <- function(y, exposure, covars, group, id=NULL,
   out$nthin <- nthin
   out$call <- match.call()
 
-  class(out) <- "bdlim4"
+  class(out) <- "bdlim4_0.4"
 
   return(out)
-
 }

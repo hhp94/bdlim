@@ -48,7 +48,7 @@ bdlim4 <- function(
     colnames(exposure) <- paste0("exposure", seq_len(ncol(exposure)))
   }
 
-  if(!is.null(covars)) {
+  if (!is.null(covars)) {
     if (is.null(colnames(covars))) {
       colnames(covars) <- paste0("covar", seq_len(ncol(covars)))
     }

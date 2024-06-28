@@ -98,7 +98,7 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   }
 
   ## RE precision
-  REprec <- if(REmodel) 0.01 else NULL
+  REprec <- if (REmodel) 0.01 else NULL
 
   ## place to store results
   regcoef_keep <- matrix(NA, nits, n_regcoef)
@@ -155,7 +155,6 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   out <- c(
     out,
     list(
-      WAIC = WAIC(out$ll_all_keep),
       n = n,
       nits = nits,
       nburn = nburn,
@@ -169,19 +168,6 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
     )
   )
 
-  # calculate posterior for cumulative effect and distributed lag function
-  # dlfun <- ce <- list()
-  # for (i in names_groups) {
-  #   w_temp <- w_keep[, paste0("w_", i, "_", 1:n_times)]
-  #   if (b_free) {
-  #     E_temp <- regcoef_keep[, paste0("E", i)]
-  #   } else {
-  #     E_temp <- regcoef_keep[, "E"]
-  #   }
-  #   dlfun[[i]] <- w_temp * E_temp
-  #   ce[[i]] <- rowSums(dlfun[[i]])
-  # }
-
   class(out) <- "bdlim1"
 
   return(out)
@@ -189,17 +175,14 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
 
 process_chains <- function(out) {
   # Get the names of the elements in each chain
-  element_names <- names(out[[1]])
-
-  # Stacking the chains into one list. Basically a nested loops that
-  # add the same elements of each chains into one list
-  all_chains <- lapply(element_names, function(name) {
-    lapply(out, function(x) { x[[name]] } )
-  })
-
-  # Assign the names to the transformed list
-  names(all_chains) <- element_names
-  return(all_chains)
+  param <- setdiff(names(out[[1]]), "ll_all_keep")
+  draws <- posterior::as_draws_list(lapply(out, function(x) {
+    x[param]
+  }))
+  ll_all_keep <- do.call(cbind, lapply(out, function(x) {
+    x[["ll_all_keep"]]
+  }))
+  return(list(draws = draws, ll_all_keep = ll_all_keep))
 }
 
 bdlim1_gaussian <- function(
@@ -295,24 +278,28 @@ bdlim1_gaussian <- function(
       REprec_keep[i] <- REprec
     }
     pred_mean_model_scale <- design %*% regcoef
-    ll_sum_keep[i] <- sum(dnorm(y, pred_mean_model_scale, sigma, log = TRUE))
-
+    # calculate log-likelihood once
+    log_likelihood <- dnorm(y, pred_mean_model_scale, sigma, log = TRUE)
+    ll_sum_keep[i] <- sum(log_likelihood)
     if (i %in% iter_keep) {
-      ll_all_keep[, which(iter_keep == i)] <- dnorm(y, pred_mean_model_scale, sigma, log = TRUE)
+      ll_all_keep[, which(iter_keep == i)] <- log_likelihood
     }
   }
 
-  out <- list(
-    w = w_keep,
-    regcoef = regcoef_keep[, (nRE + 1):n_regcoef],
-    sigma = sigma_keep,
-    loglik = ll_sum_keep,
-    ll_all_keep = ll_all_keep
+  out <- c(
+    asplit(w_keep, 2),
+    asplit(regcoef_keep[, (nRE + 1):n_regcoef], 2),
+    list(sigma = sigma_keep),
+    list(loglik = ll_sum_keep),
+    list(ll_all_keep = ll_all_keep)
   )
 
   if (REmodel) {
-    out$RE <- regcoef_keep[, 1:nRE]
-    out$REsd <- 1 / sqrt(REprec_keep)
+    out <- c(
+      out,
+      asplit(regcoef_keep[, 1:nRE], 2),
+      list(REsd = 1 / sqrt(REprec_keep))
+    )
   }
 
   return(out)
@@ -409,23 +396,28 @@ bdlim1_logistic <- function(
       REprec_keep[i] <- REprec
     }
     pred_mean_model_scale <- design %*% regcoef
-    ll_sum_keep[i] <- sum(dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE))
+    # calculate log-likelihood once
+    log_likelihood <- dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE)
+    ll_sum_keep[i] <- sum(log_likelihood)
 
     if (i %in% iter_keep) {
-      ll_all_keep[, which(iter_keep == i)] <- dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE)
+      ll_all_keep[, which(iter_keep == i)] <- log_likelihood
     }
   }
 
-  out <- list(
-    w = w_keep,
-    regcoef = regcoef_keep[, (nRE + 1):n_regcoef],
-    loglik = ll_sum_keep,
-    ll_all_keep = ll_all_keep
+  out <- c(
+    asplit(w_keep, 2),
+    asplit(regcoef_keep[, (nRE + 1):n_regcoef], 2),
+    list(loglik = ll_sum_keep),
+    list(ll_all_keep = ll_all_keep)
   )
 
   if (REmodel) {
-    out$RE <- regcoef_keep[, 1:nRE]
-    out$REsd <- 1 / sqrt(REprec_keep)
+    out <- c(
+      out,
+      asplit(regcoef_keep[, 1:nRE], 2),
+      list(REsd = 1 / sqrt(REprec_keep))
+    )
   }
 
   return(out)
