@@ -37,9 +37,11 @@ set.seed(1234)
 # fit model
 fit_sex <- bdlim4(
   y = sbd_bdlim$bwgaz,
-  exposure = sbd_bdlim[,paste0("pm25_",1:37)],
-  covars = sbd_bdlim[,c("MomPriorBMI","MomAge","race","Hispanic",
-                                   "EstMonthConcept","EstYearConcept")],
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c(
+    "MomPriorBMI", "MomAge", "race", "Hispanic",
+    "EstMonthConcept", "EstYearConcept"
+  )],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
   nits = 30000,
@@ -95,8 +97,8 @@ To check for convergence, it is advised that you run the model a few times with 
 Trace plots can be made from the posterior. For example, a trace plot from the BDLIM-bw model for 2 times in the distributed lag function for the first group can be made as shown below.
 
 ```{r trace plot, out.width="50%"}
-plot(fit_sex$fit_bw$dlfun[[1]][,10], type="l", las=1)  
-plot(fit_sex$fit_bw$dlfun[[1]][,25], type="l", las=1)  
+plot(fit_sex$fit_bw$dlfun[[1]][, 10], type = "l", las = 1)
+plot(fit_sex$fit_bw$dlfun[[1]][, 25], type = "l", las = 1)
 ```
 
 Other MCMC diagnostics can be performed by directly using the posterior sample as illustrated with the trace plot.
@@ -132,11 +134,12 @@ plt
 The second option is to make an entirely new plot from the posterior estimate obtained from the ```summary``` function.
 
 ```{r new plot}
-ggplot(sfit_sex$dlfun, aes(x=time, y=mean, ymin=q2.5, ymax=q97.5, color=group, fill=group)) +
-  geom_ribbon(color=NA, alpha=.6) + geom_line() +
+ggplot(sfit_sex$dlfun, aes(x = time, y = mean, ymin = q2.5, ymax = q97.5, color = group, fill = group)) +
+  geom_ribbon(color = NA, alpha = .6) +
+  geom_line() +
   theme_light() +
   ggtitle("My plot with BDLIM") +
-  ylab("Estimated expected difference in\nBWGAZ per 1 ug/m3 increase in exposure") + 
+  ylab("Estimated expected difference in\nBWGAZ per 1 ug/m3 increase in exposure") +
   xlab("Gestational age (exposure time)")
 ```
 

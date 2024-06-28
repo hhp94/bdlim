@@ -7,7 +7,7 @@
 bdlim4(
   y,
   exposure,
-  covars,
+  covars = NULL,
   group,
   model = c("all", "bw", "b", "w", "n"),
   id = NULL,
@@ -42,7 +42,7 @@ bdlim4(
 
 \item{chains}{Number of parallel chains per model. Not yet implemented.}
 
-\item{family}{Model family to use. Supported options are "gaussian" for a normal/Gaussian linear model, and "binomial" for a logistic model.}
+\item{family}{Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.}
 }
 \value{
 A list of results from each pattern of modification, including model comparison metrics.

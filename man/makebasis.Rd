@@ -18,5 +18,5 @@ A matrix with orthonormal basis expansions of exposure time. The matrix is T x d
 Make orthonomal basis for weight functions
 }
 \examples{
-  B <- makebasis(sbd_bdlim[,paste0("pm25_",1:37)], df=4)
+B <- makebasis(sbd_bdlim[, paste0("pm25_", 1:37)], df = 4)
 }

@@ -1,17 +1,17 @@
-#' Summary for bdlim4
+#' Summary for bdlim4_0.4
 #'
-#' @param object An object of class bdlim4.
+#' @param object An object of class bdlim4_0.4.
 #' @param model Pattern of heterogeneity to be printed. If not specified (default) the best fitting model will be used. Options are "n", "b", "w" and "bw" where b indicates the effect sizes are subgroup specific and w indicates the weight functions are subgroups specific.
 #' @param ... Other arguments
 #'
 #' @importFrom stats median quantile
 #'
-#' @return An object of class summary.bdlim2.
+#' @return An object of class summary.bdlim4_0.4.
+#' @noRd
 #' @export
 #'
 #' @example inst/examples/summary_example.R
-
-summary.bdlim4 <- function(object, model = NULL, ...) {
+summary.bdlim4_0.4 <- function(object, model = NULL, ...) {
   #  iterations to keep.
   iter_keep <- seq(object$nburn + 1, object$nits, by = object$nthin)
 
@@ -25,7 +25,6 @@ summary.bdlim4 <- function(object, model = NULL, ...) {
   if (is.null(model)) {
     model <- names(which.max(out$modelcompare))
   }
-
 
   # limit to selected model
   object <- object[[paste0("fit_", model)]]
@@ -64,8 +63,6 @@ summary.bdlim4 <- function(object, model = NULL, ...) {
   row.names(dlfun) <- NULL
 
   out$dlfun <- dlfun
-
-
 
   # summarize covariates regression coefficients
   regcoef <- data.frame(
@@ -113,30 +110,27 @@ summary.bdlim4 <- function(object, model = NULL, ...) {
 
   out$n <- object$n
 
-  class(out) <- "summary.bdlim4"
+  class(out) <- "summary.bdlim4_0.4"
 
   out$family <- object$family
 
   return(out)
 }
 
-
-
-
-#' Summary for bdlim1
+#' Summary for bdlim1_0.4
 #'
-#' @param object An object of class bdlim1.
+#' @param object An object of class bdlim1_0.4.
 #' @param ... Not used.
 #'
 #' @importFrom stats median quantile
 #'
-#' @return An object of class summary.bdlim2.
+#' @return An object of class summary.bdlim4_0.4.
+#' @noRd
 #' @export
 #'
-
-summary.bdlim1 <- function(object, ...) {
+summary.bdlim1_0.4 <- function(object, ...) {
   if (object$call$nburn == "nburn") {
-    stop("Use summary of the bdlim4 object. Use option `model' to get a specific bdlim1 model.")
+    stop("Use summary of the bdlim4_0.4 object. Use option `model' to get a specific bdlim1_0.4 model.")
   }
 
   # check which iterations to keep.
@@ -189,8 +183,6 @@ summary.bdlim1 <- function(object, ...) {
 
   out$dlfun <- dlfun
 
-
-
   # summarize covariates regression coefficients
   regcoef <- data.frame(
     name = colnames(object$regcoef),
@@ -239,7 +231,7 @@ summary.bdlim1 <- function(object, ...) {
 
   out$family <- object$family
 
-  class(out) <- "summary.bdlim1"
+  class(out) <- "summary.bdlim1_0.4"
 
   return(out)
 }

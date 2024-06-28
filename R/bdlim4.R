@@ -44,6 +44,12 @@ bdlim4 <- function(
     nits = nits, nburn = nburn, nthin = nthin, chains = chains, family = family
   )
 
+  # Drop unused levels of group and id
+  group <- droplevels(group)
+  if(!is.null(id)) {
+    id <- droplevels(id)
+  }
+
   if (is.null(colnames(exposure))) {
     colnames(exposure) <- paste0("exposure", seq_len(ncol(exposure)))
   }
@@ -215,9 +221,9 @@ validate_bdlim <- function(
   params <- list(df = df, nits = nits, nburn = nburn, nthin = nthin, chains = chains)
   lapply(names(params), function(name) validate_mcmc_param(name, params[[name]]))
 
-  if (nits <= 0 || chains <= 0) stop("`nits` and `chains` must be positive.")
+  if (any(c(nits == 0, chains == 0, nthin == 0))) stop("`nits`, `chains`, and `nthin` must be positive.")
   if (nits <= nburn) stop("`nits` has to be larger than `nburn`.")
-  if (nthin >= (nits - nburn)) stop("`nthin` cannot be larger or equal to the kept chain length (nits - nburn).")
+  if (nthin > (nits - nburn)) stop("`nthin` cannot be larger or equal to the kept chain length (nits - nburn).")
 
   # Validate lengths and number of rows
   ny <- length(y)
@@ -245,3 +251,5 @@ validate_bdlim <- function(
 # * Change parallel backend to {future}
 # * Lots of changes to bdlim4
 # * Added initial changes to allow covars to be NULL
+# * Because we use the group levels for names. We maybe should use make.name to
+# make names more consistent

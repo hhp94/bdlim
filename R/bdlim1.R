@@ -41,8 +41,8 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
 
   # dimensions
   n <- nrow(alldata)
-  n_groups <- length(unique(alldata$group))
-  names_groups <- levels(alldata$group)
+  n_groups <- length(levels(alldata$group))
+  names_groups <- make.names(levels(alldata$group), unique = TRUE, allow_ = FALSE)
   n_times <- ncol(exposure)
 
   # design matrix for covariates and main effects of group
@@ -286,10 +286,26 @@ bdlim1_gaussian <- function(
     }
   }
 
+  # Calculating beta*w and cumulative effect for each group
+  dlfun <- ce <- list()
+  for (i in names_groups) {
+    w_cols <- paste0("w_", i, "_", 1:n_times)
+    if (b_free) {
+      dlfun[[i]] <- w_keep[, w_cols] * regcoef_keep[, paste0("E", i)]
+    } else {
+      dlfun[[i]] <- w_keep[, w_cols] * regcoef_keep[, "E"]
+    }
+    colnames(dlfun[[i]]) <- paste0("E", w_cols)
+    ce[[i]] <- rowSums(dlfun[[i]])
+  }
+  names(ce) <- paste0("ce", "_", names_groups)
+
   out <- c(
     asplit(w_keep, 2),
     asplit(regcoef_keep[, (nRE + 1):n_regcoef], 2),
     list(sigma = sigma_keep),
+    asplit(do.call(cbind, dlfun), 2),
+    asplit(do.call(cbind, ce), 2),
     list(loglik = ll_sum_keep),
     list(ll_all_keep = ll_all_keep)
   )
@@ -405,9 +421,26 @@ bdlim1_logistic <- function(
     }
   }
 
+  # Calculating beta*w and cumulative effect for each group
+  dlfun <- ce <- list()
+  for (i in names_groups) {
+    w_cols <- paste0("w_", i, "_", 1:n_times)
+    if (b_free) {
+      dlfun[[i]] <- w_keep[, w_cols] * regcoef_keep[, paste0("E", i)]
+    } else {
+      dlfun[[i]] <- w_keep[, w_cols] * regcoef_keep[, "E"]
+    }
+    colnames(dlfun[[i]]) <- paste0("E", w_cols)
+    ce[[i]] <- rowSums(dlfun[[i]])
+  }
+  names(ce) <- paste0("ce", "_", names_groups)
+
   out <- c(
     asplit(w_keep, 2),
     asplit(regcoef_keep[, (nRE + 1):n_regcoef], 2),
+    list(sigma = sigma_keep),
+    asplit(do.call(cbind, dlfun), 2),
+    asplit(do.call(cbind, ce), 2),
     list(loglik = ll_sum_keep),
     list(ll_all_keep = ll_all_keep)
   )
@@ -429,3 +462,4 @@ bdlim1_logistic <- function(
 # remove the draws to save memory. Don't see any use of the burn in. If the chains
 # havent mixed, we will see it in the MCMC diagnostic anyway
 # fixed bdlim1_logistic dbinom bug
+# fix name of group make names. Refractors

@@ -1,11 +1,12 @@
-#' Print Summary of bdlim4_0.4
+#' Print Summary of bdlim4
 #'
-#' @param x An object of class summary.bdlim4_0.4.
+#' @param x An object of class summary.bdlim4.
 #' @param ... Not used.
 #'
 #' @return Assorted model output.
+#' @noRd
 #' @export
-print.summary.bdlim4_0.4 <- function(x, ...) {
+print.summary.bdlim4 <- function(x, ...) {
   cat("\nCall:\n")
   print(x$call)
 
@@ -35,5 +36,5 @@ print.summary.bdlim4_0.4 <- function(x, ...) {
   }
   cat("WAIC is ", x$WAIC[1, bestmodel], ".", sep = "")
 
-  cat("\n\nUse `plot(); for the summary.bdlim4_0.4 object to view estimated distributed lag functions. The `dlfun' object in the summary object contains estimates of the lag functions.")
+  cat("\n\nUse `plot(); for the summary.bdlim4 object to view estimated distributed lag functions. The `dlfun' object in the summary object contains estimates of the lag functions.")
 }

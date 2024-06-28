@@ -2,48 +2,54 @@
 % Please edit documentation in R/bdlim1.R
 \name{bdlim1}
 \alias{bdlim1}
-\title{Fit the BDLIM model with 1 pattern of modification}
+\title{Fit the BDLIM model with 1 Pattern of Modification}
 \usage{
 bdlim1(
   y,
   exposure,
   covars,
   group,
-  id = NULL,
+  id,
   w_free,
   b_free,
   df,
   nits,
-  nburn = round(nits/2),
-  nthin = 1
+  nburn,
+  nthin,
+  chains,
+  family
 )
 }
 \arguments{
-\item{y}{A vector of outcomes}
+\item{y}{A vector of outcomes.}
 
-\item{exposure}{A matrix of exposures with one row for each individual}
+\item{exposure}{A matrix or data.frame of exposures, with one row per individual and one column per time the exposure is observed.}
 
-\item{covars}{A matrix or data.frame of covariates This should not include the grouping factor (see group below). This may include factor variables.}
+\item{covars}{A matrix or data.frame of covariates. Covariates should not include the grouping factor (see 'group'). Factor covariates may be included.}
 
-\item{group}{A vector of group memberships. This should be a factor variable.}
+\item{group}{A vector of group memberships. This should be a factor variable corresponding to each row of 'covars' or 'group'.}
 
-\item{id}{An optional vector of individual IDs if there are repeated measures or other groupings that a random intercept should be included for. This must be a factor variable.}
+\item{id}{An optional vector of individual IDs for cases with repeated measures or other groupings where a random intercept is needed. This must be a factor variable.}
 
 \item{w_free}{Logical indicating if the weight functions are shared by all groups (FALSE) or group-specific (TRUE).}
 
 \item{b_free}{Logical indicating if the effect sizes are shared by all groups (FALSE) or group-specific (TRUE).}
 
-\item{df}{Degrees of freedom for the weight functions}
+\item{df}{Degrees of freedom for the weight functions passed to \code{\link[splines:ns]{splines::ns()}}.}
 
 \item{nits}{Number of MCMC iterations.}
 
-\item{nburn}{Number of MCMC iterations to be discarded as burn in. The default is half if the MCMC iterations. This is only used for WAIC in this function but is passed to summary and plot functions and used there.}
+\item{nburn}{Number of MCMC iterations to be discarded as burn-in. Defaults to half the total number of iterations. Used for WAIC, but also passed to summary and plot functions.}
 
-\item{nthin}{Thinning factors for the MCMC. This is only used for WAIC in this function but is passed to summary and plot functions and used there.}
+\item{nthin}{Thinning factor for MCMC. Used for WAIC, but also passed to summary and plot functions.}
+
+\item{chains}{Number of parallel chains per model. Not yet implemented.}
+
+\item{family}{Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.}
 }
 \value{
 A list with posteriors of parameters
 }
 \description{
-Fit the BDLIM model with 1 pattern of modification
+Fit the BDLIM model with 1 Pattern of Modification
 }
