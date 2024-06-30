@@ -1,12 +1,10 @@
 #' Print Results
 #'
-#' @param x An object of class bdlim4.
+#' @param x An x of class bdlim4.
 #' @param ... Not used.
 #'
 #' @return Assorted model output.
 #' @export
-#'
-
 print.bdlim4 <- function(x, ...) {
   cat("\nCall:\n")
   print(x$call)
@@ -24,16 +22,13 @@ print.bdlim4 <- function(x, ...) {
   cat("\nNote: Model probabilities tend to favor more complex models compared to WAIC. It is recomended to use model probabilities for selecting the modification pattern and WAIC to compare degrees of freedom for the weight function.")
 }
 
-
 #' Print Results
 #'
-#' @param x An object of class bdlim1.
+#' @param x An x of class bdlim1.
 #' @param ... Not used.
 #'
 #' @return Assorted model output.
 #' @export
-#'
-
 print.bdlim1 <- function(x, ...) {
   cat("\nCall:\n")
   print(x$call)
@@ -41,4 +36,6 @@ print.bdlim1 <- function(x, ...) {
   cat("\nModification pattern WAIC (lower is better fit):\n")
   waic <- x$WAIC$WAIC
   print(waic)
+
+  cat("\nModel = ", x$mode, "\n")
 }

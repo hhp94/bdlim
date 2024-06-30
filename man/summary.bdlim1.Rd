@@ -2,18 +2,22 @@
 % Please edit documentation in R/summary.bdlim4.R
 \name{summary.bdlim1}
 \alias{summary.bdlim1}
-\title{Summary for bdlim1}
+\title{Summarize \code{\link[=bdlim1]{bdlim1()}} Object}
 \usage{
-\method{summary}{bdlim1}(object, ...)
+\method{summary}{bdlim1}(object, exponentiate = FALSE, probs = c(0.025, 0.975), ...)
 }
 \arguments{
-\item{object}{An object of class bdlim1.}
+\item{object}{An object fitted with \code{\link[=bdlim4]{bdlim4()}}.}
 
-\item{...}{Not used.}
+\item{exponentiate}{A logical value indicating whether to exponentiate the results if the logit link is used. Default is \code{FALSE}.}
+
+\item{probs}{A numeric vector of probabilities to compute the quantiles. Default is \code{c(0.025, 0.975)}.}
+
+\item{...}{Additional arguments passed to \code{posterior::summarize_draws}.}
 }
 \value{
-An object of class summary.bdlim2.
+An \code{summary.bdlim1} object.
 }
 \description{
-Summary for bdlim1
+Summarize \code{\link[=bdlim1]{bdlim1()}} Object
 }

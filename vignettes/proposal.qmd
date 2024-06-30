@@ -1,0 +1,214 @@
+---
+title: "Changes Proposal"
+format: 
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    toc-title: "Contents"
+    toc-expand: true
+    fig-align: center
+editor: source
+author: Hung Pham
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Synopsis
+This report the changes added to the `{bdlim}` package. I'm happy to revert any changes.
+
+# New Feature
+Firstly, the core of the package, the MCMC chains, has not been changed. I've verified it down in the "Same results as version 0.4.x" of the report. So we can be confident that I haven't introduced bugs.
+
+## bdlim4
+```{r}
+
+```
+
+
+# Same results as version 0.4.x
+## Gaussian
+I compare the current version of the codes to my codes to show that the MCMC returned the exact same results. The current version the codes is in `R/bdlim4_0.4.R`
+```{r}
+library(devtools)
+dev_mode()
+# install()
+
+library(bdlim)
+library(future)
+library(posterior)
+
+load_all()
+```
+
+Current version of `bdlim4`
+```{r}
+set.seed(1234)
+fit_sex_0.4 <- bdlim4_0.4(
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  group = as.factor(sbd_bdlim$ChildSex),
+  df = 5,
+  nits = 100
+)
+```
+
+My version of `bdlim4`
+```{r}
+set.seed(1234)
+fit_sex_new <- bdlim4(
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  group = as.factor(sbd_bdlim$ChildSex),
+  df = 5,
+  nits = 100
+)
+```
+
+We see that the loglik matrix is the same between two versions
+```{r}
+fit_sex_0.4$loglik |> head()
+```
+
+```{r}
+fit_sex_new$loglik |> head()
+```
+
+```{r}
+waldo::compare(fit_sex_0.4$loglik, fit_sex_new$loglik)
+```
+
+Same with `waic`
+```{r}
+waldo::compare(fit_sex_0.4$WAIC, fit_sex_new$WAIC)
+```
+
+Let's check the draws of one pattern, `fit_bw`. Let's just look at the `w` draws. Here's the current version
+```{r}
+fit_bw_draws_0.4 <- fit_sex_0.4$fit_bw$w
+fit_bw_draws_0.4[1:6, 1:6]
+```
+
+For the new version, because we use `{posterior}` package to handle multiple chain MCMC, we can use the functions of the `{posterior}` package to manipulate the draws.
+```{r}
+fit_bw_draws_new <- subset_draws(
+  fit_sex_new$fit_bw$draws,
+  regex = "$w_(F|M)_" # grab just the w
+) |> 
+  as_draws_df()
+
+as.matrix(fit_bw_draws_new)[1:6, 1:6]
+```
+
+Identical results
+```{r}
+waldo::compare(fit_bw_draws_0.4, as.matrix(fit_bw_draws_new)[, colnames(fit_bw_draws_0.4)])
+```
+
+## Binomial
+Similarly for the current version of binomial:
+```{r}
+sbd_bdlim$y_binom <- rbinom(nrow(sbd_bdlim), 1, 0.5)
+
+set.seed(1234)
+fit_sex_0.4_binom <- bdlim4_0.4(
+  y = sbd_bdlim$y_binom,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  group = as.factor(sbd_bdlim$ChildSex),
+  df = 5,
+  family = "binomial",
+  nits = 100
+)
+```
+
+My codes
+```{r}
+set.seed(1234)
+fit_sex_new_binom <- bdlim4(
+  y = sbd_bdlim$y_binom,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  group = as.factor(sbd_bdlim$ChildSex),
+  df = 5,
+  family = "binomial",
+  nits = 100
+)
+```
+
+Compare loglik and waic
+```{r}
+waldo::compare(fit_sex_0.4_binom$loglik, fit_sex_new_binom$loglik)
+```
+
+```{r}
+waldo::compare(fit_sex_0.4_binom$WAIC, fit_sex_new_binom$WAIC)
+```
+
+Compare the `w` matrix of `fit_bw`. Same results
+```{r}
+fit_sex_0.4_binom_bw <- fit_sex_0.4_binom$fit_bw$w
+```
+
+```{r}
+fit_sex_new_binom_bw <- subset_draws(
+  fit_sex_new_binom$fit_bw$draws,
+  regex = "$w_(F|M)_" # grab just the w
+) |> 
+  as_draws_df()
+
+waldo::compare(fit_sex_0.4_binom_bw, as.matrix(fit_sex_new_binom_bw)[, colnames(fit_sex_0.4_binom_bw)])
+```
+
+## Gaussian, Random Effect
+```{r}
+sbd_bdlim$re_groups <- factor(rbinom(nrow(sbd_bdlim), 3, 0.5))
+
+set.seed(1234)
+fit_sex_0.4_re <- bdlim4_0.4(
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  group = as.factor(sbd_bdlim$ChildSex),
+  id = sbd_bdlim$re_groups,
+  df = 5,
+  nits = 100
+)
+```
+
+My version of `bdlim4`
+```{r}
+set.seed(1234)
+fit_sex_new_re <- bdlim4(
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  group = as.factor(sbd_bdlim$ChildSex),
+  id = sbd_bdlim$re_groups,
+  df = 5,
+  nits = 100
+)
+```
+
+Same results
+```{r}
+waldo::compare(fit_sex_0.4_re$loglik, fit_sex_new_re$loglik)
+```
+
+```{r}
+waldo::compare(fit_sex_0.4_re$WAIC, fit_sex_new_re$WAIC)
+```
+
+# Changelog
+* Added unit testing.
+* `R/bdlim4.R`
+  + Added extensive input validation with `validate_bdlim()`.
+  + Change parallel backend to {future}
+  + Lots of changes to bdlim4
+  + Added initial changes to allow covars to be NULL
+  + make names more consistent
+  + Added package

@@ -9,3 +9,5 @@
 ^testandsim$
 ^\.github$
 ^\.Rprofile$
+^vignettes/proposal\.qmd$
+^vignettes/proposal_files$

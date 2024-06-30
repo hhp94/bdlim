@@ -7,7 +7,7 @@
 \method{print}{bdlim1}(x, ...)
 }
 \arguments{
-\item{x}{An object of class bdlim1.}
+\item{x}{An x of class bdlim1.}
 
 \item{...}{Not used.}
 }

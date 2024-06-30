@@ -2,7 +2,7 @@
 % Please edit documentation in R/bdlim1.R
 \name{bdlim1}
 \alias{bdlim1}
-\title{Fit the BDLIM model with 1 Pattern of Modification}
+\title{Fit the BDLIM Model with One Pattern of Modification}
 \usage{
 bdlim1(
   y,
@@ -21,13 +21,13 @@ bdlim1(
 )
 }
 \arguments{
-\item{y}{A vector of outcomes.}
+\item{y}{A vector of outcomes. Numeric vectors of 0s and 1s for binomial family.}
 
-\item{exposure}{A matrix or data.frame of exposures, with one row per individual and one column per time the exposure is observed.}
+\item{exposure}{A matrix or data frame of exposures, with one row per individual and one column per time the exposure is observed.}
 
-\item{covars}{A matrix or data.frame of covariates. Covariates should not include the grouping factor (see 'group'). Factor covariates may be included.}
+\item{covars}{A matrix or data frame of covariates. Covariates should not include the grouping factor (see 'group'). Factor covariates may be included.}
 
-\item{group}{A vector of group memberships. This should be a factor variable corresponding to each row of 'covars' or 'group'.}
+\item{group}{A vector of group memberships. This should be a factor variable corresponding to each row of 'covars' or 'exposure'.}
 
 \item{id}{An optional vector of individual IDs for cases with repeated measures or other groupings where a random intercept is needed. This must be a factor variable.}
 
@@ -48,8 +48,8 @@ bdlim1(
 \item{family}{Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.}
 }
 \value{
-A list with posteriors of parameters
+A \code{bdlim1} object.
 }
 \description{
-Fit the BDLIM model with 1 Pattern of Modification
+Warning: Use \code{\link[=bdlim4]{bdlim4()}} with the \code{model} argument to fit the desired pattern instead. This function does not validate the inputs.
 }

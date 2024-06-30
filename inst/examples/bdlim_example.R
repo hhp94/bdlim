@@ -2,6 +2,10 @@
 library(bdlim)
 library(future)
 
+# Change MCMC convergence threshold to suppress warnings.
+options(bdlim_rhat_thresh = 1.01)
+options(bdlim_ess_thresh = 400)
+
 # To run in parallel, change workers to > 1
 plan(multisession, workers = 1)
 # run BDLIM with modification by ChildSex

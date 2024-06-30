@@ -3,6 +3,7 @@
 \name{modelcompare}
 \alias{modelcompare}
 \alias{modelcompare.default}
+\alias{modelcompare.bdlim4}
 \alias{modelcompare.bdlim4_0.4}
 \title{Model Comparison for \code{\link[=bdlim4]{bdlim4()}} Fit}
 \usage{
@@ -10,10 +11,12 @@ modelcompare(object)
 
 \method{modelcompare}{default}(object)
 
+\method{modelcompare}{bdlim4}(object)
+
 \method{modelcompare}{bdlim4_0.4}(object)
 }
 \arguments{
-\item{object}{An object of class "bdlim4" obtained from the \code{\link[=bdlim4]{bdlim4()}} function.}
+\item{object}{An object of class \code{bdlim4} obtained from the \code{\link[=bdlim4]{bdlim4()}} function.}
 }
 \value{
 A vector of model probabilities.

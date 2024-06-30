@@ -531,8 +531,7 @@ bdlim1_0.4_logistic <- function(y, exposure, covars, group, id = NULL, w_free, b
 #'
 #' @return A list of results from each different pattern of modification and model compassion metrics
 #'
-#' @keywords internal
-#' @example inst/examples/bdlim4_0.4_example.R
+#' @example inst/examples/bdlim_example.R
 bdlim4_0.4 <- function(y, exposure, covars, group, id = NULL,
                        df, nits, nburn = round(nits / 2), nthin = 1, parallel = FALSE,
                        family = "gaussian") {

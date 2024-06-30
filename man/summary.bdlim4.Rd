@@ -2,22 +2,32 @@
 % Please edit documentation in R/summary.bdlim4.R
 \name{summary.bdlim4}
 \alias{summary.bdlim4}
-\title{Summary for bdlim4}
+\title{Summarize \code{\link[=bdlim4]{bdlim4()}} Object}
 \usage{
-\method{summary}{bdlim4}(object, model = NULL, ...)
+\method{summary}{bdlim4}(
+  object,
+  model = NULL,
+  exponentiate = FALSE,
+  probs = c(0.025, 0.975),
+  ...
+)
 }
 \arguments{
-\item{object}{An object of class bdlim4.}
+\item{object}{An object fitted with \code{\link[=bdlim4]{bdlim4()}}.}
 
-\item{model}{Pattern of heterogeneity to be printed. If not specified (default) the best fitting model will be used. Options are "n", "b", "w" and "bw" where b indicates the effect sizes are subgroup specific and w indicates the weight functions are subgroups specific.}
+\item{model}{A character string specifying which model to summarize. If \code{NULL}, the best fitting model is selected based on model probability.}
 
-\item{...}{Other arguments}
+\item{exponentiate}{A logical value indicating whether to exponentiate the results if the logit link is used. Default is \code{FALSE}.}
+
+\item{probs}{A numeric vector of probabilities to compute the quantiles. Default is \code{c(0.025, 0.975)}.}
+
+\item{...}{Additional arguments passed to \code{posterior::summarize_draws}.}
 }
 \value{
-An object of class summary.bdlim2.
+A \code{summary.bdlim4} object.
 }
 \description{
-Summary for bdlim4
+Summarizes a fitted \code{bdlim4} object.
 }
 \examples{
 \donttest{

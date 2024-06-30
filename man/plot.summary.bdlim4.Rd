@@ -2,20 +2,23 @@
 % Please edit documentation in R/plot.summary.bdlim4.R
 \name{plot.summary.bdlim4}
 \alias{plot.summary.bdlim4}
-\title{Plot for Summary pf BDLIM}
+\title{Plot for Summary of BDLIM}
 \usage{
 \method{plot}{summary.bdlim4}(x, ...)
 }
 \arguments{
-\item{x}{An object of class summary.bdlim4.}
+\item{x}{An object of class \code{summary.bdlim4}.}
 
 \item{...}{Not used.}
 }
 \value{
-An ggplot2 figure.
+A ggplot2 figure.
 }
 \description{
-Plot for Summary pf BDLIM
+Plot for Summary of BDLIM
+}
+\details{
+Pass \code{FALSE} to \code{continuous_weight} and points and error bars will be used instead.
 }
 \examples{
 \donttest{

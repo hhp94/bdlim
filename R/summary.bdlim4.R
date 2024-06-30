@@ -1,245 +1,126 @@
-#' Summary for bdlim4
+#' Summarize [bdlim4()] Object
 #'
-#' @param object An object of class bdlim4.
-#' @param model Pattern of heterogeneity to be printed. If not specified (default) the best fitting model will be used. Options are "n", "b", "w" and "bw" where b indicates the effect sizes are subgroup specific and w indicates the weight functions are subgroups specific.
-#' @param ... Other arguments
+#' Summarizes a fitted `bdlim4` object.
 #'
-#' @importFrom stats median quantile
+#' @param object An object fitted with [bdlim4()].
+#' @param model A character string specifying which model to summarize. If `NULL`, the best fitting model is selected based on model probability.
+#' @param exponentiate A logical value indicating whether to exponentiate the results if the logit link is used. Default is `FALSE`.
+#' @param probs A numeric vector of probabilities to compute the quantiles. Default is `c(0.025, 0.975)`.
+#' @param ... Additional arguments passed to `posterior::summarize_draws`.
 #'
-#' @return An object of class summary.bdlim2.
+#' @return A `summary.bdlim4` object.
 #' @export
-#'
 #' @example inst/examples/summary_example.R
-
-summary.bdlim4 <- function(object, model = NULL, ...) {
-  #  iterations to keep.
-  iter_keep <- seq(object$nburn + 1, object$nits, by = object$nthin)
-
+summary.bdlim4 <- function(object, model = NULL, exponentiate = FALSE, probs = c(0.025, 0.975), ...) {
   out <- list(
     modelcompare = modelcompare(object),
     WAIC = object$WAIC,
     call = object$call
   )
 
-  # find best fitting model
+  # Find the best fitting model if not specified
   if (is.null(model)) {
     model <- names(which.max(out$modelcompare))
   }
 
+  # Limit to selected model. Passed to summary.bdlim1
+  sbdlim1 <- summary.bdlim1(object[[paste0("fit_", model)]], exponentiate = exponentiate, probs = probs, ...)
+  sbdlim1$WAIC <- NULL
+  sbdlim1$call <- NULL
 
-  # limit to selected model
-  object <- object[[paste0("fit_", model)]]
-
-  # OR scale for binomial
-  if (object$family == "binomial") {
-    object$ce <- lapply(object$ce, exp)
-    object$dlfun <- lapply(object$dlfun, exp)
-    object$regcoef <- exp(object$regcoef)
-  }
-
-  # summarize cumulative effect
-  ce <- data.frame(
-    group = object$names_groups,
-    mean = sapply(object$ce, function(x) mean(x[iter_keep])),
-    median = sapply(object$ce, function(x) median(x[iter_keep])),
-    sd = sapply(object$ce, function(x) sd(x[iter_keep])),
-    q2.5 = sapply(object$ce, function(x) quantile(x[iter_keep], 0.025)),
-    q97.5 = sapply(object$ce, function(x) quantile(x[iter_keep], 0.975)),
-    pr_gr0 = sapply(object$ce, function(x) mean(x[iter_keep] > 0))
-  )
-  row.names(ce) <- NULL
-  out$cumulative <- ce
-
-  # summarize distributed lag function
-  dlfun <- data.frame(
-    group = rep(object$names_groups, each = object$n_times),
-    time = rep(1:object$n_times, length(object$names_groups)),
-    mean = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, mean))),
-    median = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, median))),
-    sd = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, sd))),
-    q2.5 = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, quantile, 0.025))),
-    q97.5 = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, quantile, 0.975))),
-    pr_gr0 = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ] > 0, 2, mean)))
-  )
-  row.names(dlfun) <- NULL
-
-  out$dlfun <- dlfun
-
-
-
-  # summarize covariates regression coefficients
-  regcoef <- data.frame(
-    name = colnames(object$regcoef),
-    mean = apply(object$regcoef, 2, function(x) mean(x[iter_keep])),
-    median = apply(object$regcoef, 2, function(x) median(x[iter_keep])),
-    sd = apply(object$regcoef, 2, function(x) sd(x[iter_keep])),
-    q2.5 = apply(object$regcoef, 2, function(x) quantile(x[iter_keep], 0.025)),
-    q97.5 = apply(object$regcoef, 2, function(x) quantile(x[iter_keep], 0.975)),
-    pr_gr0 = apply(object$regcoef, 2, function(x) mean(x[iter_keep] > 0))
-  )
-  row.names(regcoef) <- NULL
-  out$regcoef <- regcoef
-
-  # summarize covariates regression coefficients
-  if (object$family == "gaussian") {
-    sigma <- data.frame(
-      name = "sigma",
-      mean = mean(object$sigma[iter_keep]),
-      median = median(object$sigma[iter_keep]),
-      sd = median(object$sigma[iter_keep]),
-      q2.5 = quantile(object$sigma[iter_keep], 0.025),
-      q97.5 = quantile(object$sigma[iter_keep], 0.975)
-    )
-    row.names(sigma) <- NULL
-    out$sigma <- sigma
-  }
-
-  # summarize covariates regression coefficients
-  if (object$REmodel) {
-    REsd <- data.frame(
-      name = "REsd",
-      mean = mean(object$REsd[iter_keep]),
-      median = median(object$REsd[iter_keep]),
-      sd = median(object$REsd[iter_keep]),
-      q2.5 = quantile(object$REsd[iter_keep], 0.025),
-      q97.5 = quantile(object$REsd[iter_keep], 0.975)
-    )
-    row.names(REsd) <- NULL
-    out$REsd <- REsd
-    out$nRElevels <- ncol(object$RE)
-  }
-
-  out$names_groups <- object$names_groups
-
-  out$n <- object$n
-
+  out <- c(out, sbdlim1)
   class(out) <- "summary.bdlim4"
-
-  out$family <- object$family
-
   return(out)
 }
 
-
-
-
-#' Summary for bdlim1
+#' Summarize [bdlim1()] Object
 #'
-#' @param object An object of class bdlim1.
-#' @param ... Not used.
+#' @inheritParams summary.bdlim4
 #'
-#' @importFrom stats median quantile
-#'
-#' @return An object of class summary.bdlim2.
+#' @return An `summary.bdlim1` object.
 #' @export
-#'
+summary.bdlim1 <- function(object, exponentiate = FALSE, probs = c(0.025, 0.975), ...) {
+  stopifnot(is.logical(exponentiate) && length(exponentiate) == 1)
 
-summary.bdlim1 <- function(object, ...) {
-  if (object$call$nburn == "nburn") {
-    stop("Use summary of the bdlim4 object. Use option `model' to get a specific bdlim1 model.")
-  }
+  out <- list(WAIC = object$WAIC$WAIC, call = object$call)
 
-  # check which iterations to keep.
-  if (is.null(object$call$nburn)) {
-    object$call$nburn <- round(object$call$nits / 2)
-  }
-  if (is.null(object$call$nthin)) {
-    object$call$nthin <- 1
-  }
-  iter_keep <- seq(object$call$nburn + 1, object$call$nits, by = object$call$nthin)
+  iter_keep <- seq(object$nburn + 1, object$nits, by = object$nthin)
 
-  out <- list(
-    WAIC = object$WAIC$WAIC,
-    call = object$call
-  )
+  dots <- list(...)
 
-
-  # OR scale for binomial
-  if (object$family == "binomial") {
-    object$ce <- exp(object$ce)
-    object$dlfun <- exp(object$dlfun)
-    object$regcoef <- exp(object$regcoef)
-  }
-
-  # summarize cumulative effect
-  ce <- data.frame(
-    group = object$names_groups,
-    mean = sapply(object$ce, function(x) mean(x[iter_keep])),
-    median = sapply(object$ce, function(x) median(x[iter_keep])),
-    sd = sapply(object$ce, function(x) sd(x[iter_keep])),
-    q2.5 = sapply(object$ce, function(x) quantile(x[iter_keep], 0.025)),
-    q97.5 = sapply(object$ce, function(x) quantile(x[iter_keep], 0.975)),
-    pr_gr0 = sapply(object$ce, function(x) mean(x[iter_keep] > 0))
-  )
-  row.names(ce) <- NULL
-  out$cumulative <- ce
-
-  # summarize distributed lag function
-  dlfun <- data.frame(
-    group = rep(object$names_groups, each = object$n_times),
-    time = rep(1:object$n_times, length(object$names_groups)),
-    mean = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, mean))),
-    median = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, median))),
-    sd = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, sd))),
-    q2.5 = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, quantile, 0.025))),
-    q97.5 = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ], 2, quantile, 0.975))),
-    pr_gr0 = c(sapply(object$dlfun, function(x) apply(x[iter_keep, ] > 0, 2, mean)))
-  )
-  row.names(dlfun) <- NULL
-
-  out$dlfun <- dlfun
-
-
-
-  # summarize covariates regression coefficients
-  regcoef <- data.frame(
-    name = colnames(object$regcoef),
-    mean = apply(object$regcoef, 2, function(x) mean(x[iter_keep])),
-    median = apply(object$regcoef, 2, function(x) median(x[iter_keep])),
-    sd = apply(object$regcoef, 2, function(x) sd(x[iter_keep])),
-    q2.5 = apply(object$regcoef, 2, function(x) quantile(x[iter_keep], 0.025)),
-    q97.5 = apply(object$regcoef, 2, function(x) quantile(x[iter_keep], 0.975)),
-    pr_gr0 = apply(object$regcoef, 2, function(x) mean(x[iter_keep] > 0))
-  )
-  row.names(regcoef) <- NULL
-  out$regcoef <- regcoef
-
-  # summarize covariates regression coefficients
-  if (object$family == "gaussian") {
-    sigma <- data.frame(
-      name = "sigma",
-      mean = mean(object$sigma[iter_keep]),
-      median = median(object$sigma[iter_keep]),
-      sd = median(object$sigma[iter_keep]),
-      q2.5 = quantile(object$sigma[iter_keep], 0.025),
-      q97.5 = quantile(object$sigma[iter_keep], 0.975)
+  if (length(dots) == 0) {
+    quantile3 <- function(.x) {
+      posterior::quantile2(x = .x, probs = probs)
+    }
+    default_args <- list(
+      "mean", "median", "sd", "quantile3", "rhat", "ess_bulk", "ess_tail"
     )
-    row.names(sigma) <- NULL
-    out$sigma <- sigma
+  } else {
+    default_args <- NULL
   }
 
-  # summarize covariates regression coefficients
+  object$draws <- posterior::subset_draws(object$draws, iteration = iter_keep)
+  object$draws <- posterior::as_draws_array(object$draws)
+
+  if (object$family == "binomial" && exponentiate) {
+    for (i in c(object$ce, object$dlfun, object$regcoef)) {
+      object$draws[, , i] <- exp(object$draws[, , i])
+    }
+  }
+  # `cumulative` table
+  out$cumulative <- posterior::summarize_draws(
+    object$draws[, , object$variable$ce], default_args, ...
+  )
+
+  # Extract group for cumulative effects
+  # Regex explanation:
+  # ^ce_ matches the start of the string followed by "ce_"
+  # (.*) captures everything after "ce_" into a group
+  # $ ensures we've reached the end of the string
+  # \\1 in the replacement refers to the captured group.
+  # This same pattern is used for `dlfun`.
+  out$cumulative$group <- sub("^ce_(.*)$", "\\1", out$cumulative$variable)
+
+  # Move group column to the front for cumulative effects
+  out$cumulative <- out$cumulative[, c("group", setdiff(names(out$cumulative), "group"))]
+
+  # Sort cumulative by group
+  out$cumulative <- out$cumulative[order(out$cumulative$group), ]
+
+  # `dlfun` table
+  out$dlfun <- posterior::summarize_draws(
+    object$draws[, , object$variable$dlfun], default_args, ...
+  )
+
+  # Extract time and group for distributed lag functions
+  out$dlfun$time <- as.numeric(sub(".*_(\\d+)$", "\\1", out$dlfun$variable))
+  out$dlfun$group <- sub("^Ew_(.*)_\\d+$", "\\1", out$dlfun$variable)
+
+  # Move group and time columns to the front for distributed lag functions
+  out$dlfun <- out$dlfun[, c("group", "time", setdiff(names(out$dlfun), c("group", "time")))]
+
+  # Sort `dlfun` by group and time
+  out$dlfun <- out$dlfun[order(out$dlfun$group, out$dlfun$time), ]
+
+  # `regcoef` table
+  out$regcoef <- posterior::summarize_draws(
+    object$draws[, , object$variable$regcoef], default_args, ...
+  )
+
+  # Add other variables
+  for (i in c(object$variable$sigma, object$variable$RE, object$variable$REsd)) {
+    if (!is.null(i)) {
+      out[[i]] <- posterior::summarize_draws(object$draws[, , i])
+    }
+  }
+
   if (object$REmodel) {
-    REsd <- data.frame(
-      name = "REsd",
-      mean = mean(object$REsd[iter_keep]),
-      median = median(object$REsd[iter_keep]),
-      sd = median(object$REsd[iter_keep]),
-      q2.5 = quantile(object$REsd[iter_keep], 0.025),
-      q97.5 = quantile(object$REsd[iter_keep], 0.975)
-    )
-    row.names(REsd) <- NULL
-    out$REsd <- REsd
-    out$nRElevels <- ncol(object$RE)
+    out$nRElevels <- length(object$variable$RE)
   }
 
-  out$names_groups <- object$names_groups
-
-  out$n <- object$n
-
-  out$family <- object$family
+  out <- c(out, object[c("names_groups", "n", "family", "chains", "model", "variable", "MCMC_check")])
+  out$exponentiate <- exponentiate
 
   class(out) <- "summary.bdlim1"
-
   return(out)
 }

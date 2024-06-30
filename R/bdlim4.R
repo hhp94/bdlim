@@ -1,9 +1,11 @@
 #' Fit the BDLIM Model with 4 Patterns of Modification
 #'
-#' @param y A vector of outcomes.
-#' @param exposure A matrix or data.frame of exposures, with one row per individual and one column per time the exposure is observed.
-#' @param covars A matrix or data.frame of covariates. Covariates should not include the grouping factor (see 'group'). Factor covariates may be included.
-#' @param group A vector of group memberships. This should be a factor variable corresponding to each row of 'covars' or 'group'.
+#' Main function of the `{bdlim}` package. Can run parallel over 1) 4 types of models and 2) multiple MCMC chains per model. See examples and \code{vignette("future-1-overview", package = "future")}.
+#'
+#' @param y A vector of outcomes. Numeric vectors of 0s and 1s for binomial family.
+#' @param exposure A matrix or data frame of exposures, with one row per individual and one column per time the exposure is observed.
+#' @param covars A matrix or data frame of covariates. Covariates should not include the grouping factor (see 'group'). Factor covariates may be included.
+#' @param group A vector of group memberships. This should be a factor variable corresponding to each row of 'covars' or 'exposure'.
 #' @param model A vector of model options including any of: "all", "bw", "b", "w", "n". Defaults to "all".
 #' @param id An optional vector of individual IDs for cases with repeated measures or other groupings where a random intercept is needed. This must be a factor variable.
 #' @param df Degrees of freedom for the weight functions passed to [splines::ns()].
@@ -13,7 +15,7 @@
 #' @param chains Number of parallel chains per model. Not yet implemented.
 #' @param family Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.
 #'
-#' @return A list of results from each pattern of modification, including model comparison metrics.
+#' @return A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored as well (e.g., fit$fit_bw) where the posterior draws are stored (e.g., fit$fit_bw$draws).
 #' @export
 #'
 #' @example inst/examples/bdlim_example.R
@@ -46,7 +48,7 @@ bdlim4 <- function(
 
   # Drop unused levels of group and id
   group <- droplevels(group)
-  if(!is.null(id)) {
+  if (!is.null(id)) {
     id <- droplevels(id)
   }
 
@@ -117,17 +119,20 @@ bdlim4 <- function(
   # likelihood comparison
   out$loglik <- as.data.frame(lapply(fit_names, function(x) {
     out[[x]]$loglik
-  }), col.names = model)
+  }))
+  names(out$loglik) <- model
 
   # WAIC comparison
   out$WAIC <- as.data.frame(lapply(fit_names, function(x) {
     out[[x]]$WAIC$WAIC
-  }), col.names = model)
+  }))
+  names(out$WAIC) <- model
 
   # Compile results
   out$nits <- nits
   out$nburn <- nburn
   out$nthin <- nthin
+  out$chains <- chains
   out$call <- match.call()
 
   class(out) <- "bdlim4"
@@ -221,7 +226,7 @@ validate_bdlim <- function(
   params <- list(df = df, nits = nits, nburn = nburn, nthin = nthin, chains = chains)
   lapply(names(params), function(name) validate_mcmc_param(name, params[[name]]))
 
-  if (any(c(nits == 0, chains == 0, nthin == 0))) stop("`nits`, `chains`, and `nthin` must be positive.")
+  if (any(c(nits == 0, chains == 0, nthin == 0, df == 0))) stop("`df`, `nits`, `chains`, and `nthin` must be positive.")
   if (nits <= nburn) stop("`nits` has to be larger than `nburn`.")
   if (nthin > (nits - nburn)) stop("`nthin` cannot be larger or equal to the kept chain length (nits - nburn).")
 
@@ -245,11 +250,3 @@ validate_bdlim <- function(
 
   return(0)
 }
-
-# Changes
-# * Further input validation
-# * Change parallel backend to {future}
-# * Lots of changes to bdlim4
-# * Added initial changes to allow covars to be NULL
-# * Because we use the group levels for names. We maybe should use make.name to
-# make names more consistent

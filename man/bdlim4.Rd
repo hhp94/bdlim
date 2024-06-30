@@ -20,13 +20,13 @@ bdlim4(
 )
 }
 \arguments{
-\item{y}{A vector of outcomes.}
+\item{y}{A vector of outcomes. Numeric vectors of 0s and 1s for binomial family.}
 
-\item{exposure}{A matrix or data.frame of exposures, with one row per individual and one column per time the exposure is observed.}
+\item{exposure}{A matrix or data frame of exposures, with one row per individual and one column per time the exposure is observed.}
 
-\item{covars}{A matrix or data.frame of covariates. Covariates should not include the grouping factor (see 'group'). Factor covariates may be included.}
+\item{covars}{A matrix or data frame of covariates. Covariates should not include the grouping factor (see 'group'). Factor covariates may be included.}
 
-\item{group}{A vector of group memberships. This should be a factor variable corresponding to each row of 'covars' or 'group'.}
+\item{group}{A vector of group memberships. This should be a factor variable corresponding to each row of 'covars' or 'exposure'.}
 
 \item{model}{A vector of model options including any of: "all", "bw", "b", "w", "n". Defaults to "all".}
 
@@ -45,15 +45,19 @@ bdlim4(
 \item{family}{Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.}
 }
 \value{
-A list of results from each pattern of modification, including model comparison metrics.
+A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored as well (e.g., fit$fit_bw) where the posterior draws are stored (e.g., fit$fit_bw$draws).
 }
 \description{
-Fit the BDLIM Model with 4 Patterns of Modification
+Main function of the \code{{bdlim}} package. Can run parallel over 1) 4 types of models and 2) multiple MCMC chains per model. See examples and \code{vignette("future-1-overview", package = "future")}.
 }
 \examples{
 \donttest{
 library(bdlim)
 library(future)
+
+# Change MCMC convergence threshold to suppress warnings.
+options(bdlim_rhat_thresh = 1.01)
+options(bdlim_ess_thresh = 400)
 
 # To run in parallel, change workers to > 1
 plan(multisession, workers = 1)

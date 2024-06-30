@@ -6,7 +6,7 @@
 #' @return Assorted model output.
 #' @noRd
 #' @export
-print.summary.bdlim4 <- function(x, ...) {
+print.summary.bdlim4_0.4 <- function(x, ...) {
   cat("\nCall:\n")
   print(x$call)
 
