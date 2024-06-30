@@ -8,7 +8,7 @@
 #'
 #' @return A `bdlim1` object.
 #' @export
-bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nburn, nthin, chains, family) {
+bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nburn, nthin, chains, family, loglik_all) {
   # switch between family
   bdlim1_fit <- switch(family,
     gaussian = bdlim1_gaussian,
@@ -20,7 +20,10 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   # Because we no longer allow NA, we don't need to add exposure to `alldata`.
   # group has to be the first factor, otherwise stats::model.matrix won't create a
   # term for each group
-  alldata <- droplevels(cbind(data.frame(y = y, group = group), covars))
+  alldata <- data.frame(y = y, group = group)
+  if(!is.null(covars)) {
+    alldata <- droplevels(cbind(alldata, covars))
+  }
 
   # add random effect matrix here
   if (!is.null(id)) {
@@ -192,6 +195,10 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   # Summarize MCMC Convergence
   out$MCMC_check <- posterior::summarize_draws(out$draws, "rhat", "ess_bulk", "ess_tail")
 
+  if (!loglik_all) {
+    out$ll_all_keep <- NULL
+  }
+
   class(out) <- "bdlim1"
 
   return(out)
@@ -206,7 +213,7 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
 #' @keywords internal
 #' @noRd
 process_chains <- function(out) {
-  # Get the names of the elements in each chain excluding ll_all_keep
+  # Get the names of the elements in each chain excluding `ll_all_keep`
   param <- setdiff(names(out[[1]]), "ll_all_keep")
 
   # Convert each chain to a consistent format for other MCMC packages
@@ -491,11 +498,3 @@ bdlim1_logistic <- function(
 
   return(out)
 }
-
-# refractored bldim1 so that it calls gaussian or logistic fit
-# had to do this in order to implement parallel chain
-# use posterior package
-# remove the draws to save memory. Don't see any use of the burn in. If the chains
-# havent mixed, we will see it in the MCMC diagnostic anyway
-# fixed bdlim1_logistic stats::dbinom bug
-# fix name of group make names. Refractors

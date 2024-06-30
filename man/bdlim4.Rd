@@ -16,7 +16,8 @@ bdlim4(
   nburn = round(nits/2),
   nthin = 1,
   chains = 1,
-  family = c("gaussian", "binomial")
+  family = c("gaussian", "binomial"),
+  loglik_all = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ bdlim4(
 \item{chains}{Number of parallel chains per model. Not yet implemented.}
 
 \item{family}{Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.}
+
+\item{loglik_all}{Save full log likelihood matrix of kept chains for each pattern (i.e., \code{fit$fit_bw$ll_all_keep}). Needed for other validation methods such as \code{loo} but can be memory intensive. Default to \code{FALSE}.}
 }
 \value{
 A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored as well (e.g., fit$fit_bw) where the posterior draws are stored (e.g., fit$fit_bw$draws).
@@ -56,7 +59,7 @@ library(bdlim)
 library(future)
 
 # Change MCMC convergence threshold to suppress warnings.
-options(bdlim_rhat_thresh = 1.01)
+options(bdlim_rhat_thresh_u = 1.01)
 options(bdlim_ess_thresh = 400)
 
 # To run in parallel, change workers to > 1

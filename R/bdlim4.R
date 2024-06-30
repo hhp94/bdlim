@@ -14,6 +14,7 @@
 #' @param nthin Thinning factor for MCMC. Used for WAIC, but also passed to summary and plot functions.
 #' @param chains Number of parallel chains per model. Not yet implemented.
 #' @param family Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.
+#' @param loglik_all Save full log likelihood matrix of kept chains for each pattern (i.e., `fit$fit_bw$ll_all_keep`). Needed for other validation methods such as `loo` but can be memory intensive. Default to `FALSE`.
 #'
 #' @return A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored as well (e.g., fit$fit_bw) where the posterior draws are stored (e.g., fit$fit_bw$draws).
 #' @export
@@ -31,8 +32,9 @@ bdlim4 <- function(
     nburn = round(nits / 2),
     nthin = 1,
     chains = 1,
-    family = c("gaussian", "binomial")) {
-  # Pre-liminary validation
+    family = c("gaussian", "binomial"),
+    loglik_all = FALSE) {
+  # Preliminary validation
   family <- match.arg(family)
   model <- unique(match.arg(model, several.ok = TRUE))
   if ("all" %in% model) {
@@ -43,7 +45,8 @@ bdlim4 <- function(
   # Validate input
   validate_bdlim(
     y = y, exposure = exposure, covars = covars, group = group, id = id, df = df,
-    nits = nits, nburn = nburn, nthin = nthin, chains = chains, family = family
+    nits = nits, nburn = nburn, nthin = nthin, chains = chains, family = family,
+    loglik_all = loglik_all
   )
 
   # Drop unused levels of group and id
@@ -107,7 +110,8 @@ bdlim4 <- function(
           nburn = nburn,
           nthin = nthin,
           chains = chains,
-          family = family
+          family = family,
+          loglik_all = loglik_all
         )
       }
     ), future_args)
@@ -157,7 +161,8 @@ validate_bdlim <- function(
     nburn,
     nthin,
     chains,
-    family = c("gaussian", "binomial")) {
+    family = c("gaussian", "binomial"),
+    loglik_all = FALSE) {
   # Validate `family`
   family <- match.arg(family)
 
@@ -241,6 +246,10 @@ validate_bdlim <- function(
   lengths <- c(ny, ne, nc, ng, ni)
   if (length(unique(lengths[!is.null(lengths)])) != 1) {
     stop("Inconsistent number of rows between inputs found.")
+  }
+
+  if (!is.logical(loglik_all) || length(loglik_all) != 1) {
+    stop("`loglik_all` must be a boolean.")
   }
 
   # Disallow NA

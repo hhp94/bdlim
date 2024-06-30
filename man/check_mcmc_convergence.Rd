@@ -14,8 +14,10 @@ Checks the convergence of MCMC draws using \code{rhat} and effective sample size
 }
 \examples{
 \dontrun{
-options(bdlim_rhat_thresh = 1.05)
-options(bdlim_ess_thresh = 500)
+# Change threshold to silent warnings
+options(bdlim_rhat_thresh_u = 1.05)
+options(bdlim_rhat_thresh_l = 0.95)
+options(bdlim_ess_thresh = 200)
 
 # check_mcmc_convergence(summary(bdlim4_fit))
 }

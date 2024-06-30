@@ -8,41 +8,174 @@ format:
     toc-title: "Contents"
     toc-expand: true
     fig-align: center
+    number-sections: true
 editor: source
 author: Hung Pham
 execute:
   echo: true
-  warning: false
   message: false
+  warning: false
 ---
 
-# Synopsis
-This report the changes added to the `{bdlim}` package. I'm happy to revert any changes.
-
-# New Feature
-Firstly, the core of the package, the MCMC chains, has not been changed. I've verified it down in the "Same results as version 0.4.x" of the report. So we can be confident that I haven't introduced bugs.
-
-## bdlim4
-```{r}
-
-```
-
-
-# Same results as version 0.4.x
-## Gaussian
-I compare the current version of the codes to my codes to show that the MCMC returned the exact same results. The current version the codes is in `R/bdlim4_0.4.R`
 ```{r}
 library(devtools)
-dev_mode()
-# install()
-
 library(bdlim)
 library(future)
 library(posterior)
-
 load_all()
 ```
 
+# Synopsis
+This report details the changes made to the `{bdlim}` package.
+
+# New Features
+The core functionality of the package, the MCMC chains, has not been altered. I confirmed this in the "Same results as version 0.4.x" section of the report below. Therefore, we can be confident that no bugs have been introduced.
+
+## `bdlim4`
+* It is now possible to specify which pattern to fit in `bdlim4` using the `model` argument. Setting `model = "all"` will fit all four patterns.
+
+```{r}
+# fit just model n and b
+f <- bdlim4(
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  model = c("n", "b"),
+  group = as.factor(sbd_bdlim$ChildSex),
+  df = 5,
+  nits = 50
+)
+
+f
+```
+
+## Multiple Chains MCMC
+* Enabled multiple chains MCMC.
+
+```{r}
+f_mcmc <- bdlim4(
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  model = c("n"), # 1 pattern
+  group = as.factor(sbd_bdlim$ChildSex),
+  df = 5,
+  nits = 200,
+  chains = 3 # 3 parallel chain per model
+)
+```
+
+* Handling posterior draws of multiple chains can become very cumbersome. That's why I used the [`{posterior}`](https://mc-stan.org/posterior/index.html) package to do so in a consistent way. These objects are named `draws` and stored under each `bdlim1` fit.
+```{r}
+# get the draws object of `fit_n`
+f_mcmc$fit_n$draws |> class()
+```
+
+* `{posterior}` enables us to easily subset, merge, and add chains. For example, let's subset iterations 101 to 200 of each chain, of just the variable `w_F_1`, then merge the draws from 3 chains.
+```{r}
+merge_chains(
+  subset_draws(f_mcmc$fit_n$draws, iteration = 101:200, variable = "w_F_1")
+)
+```
+
+* This also enables us to use many other Bayesian packages that support `{posterior}`. For example, we can use the package [`{bayesplot}`](https://mc-stan.org/bayesplot/articles/plotting-mcmc-draws.html) to plot our MCMC chains.
+```{r}
+library(bayesplot)
+color_scheme_set("viridis")
+mcmc_trace(as_draws_array(subset_draws(f_mcmc$fit_n$draws, variable = c("sigma"))))
+```
+
+Or plotting the cumulative effects. See more cool plots [`here`](https://mc-stan.org/bayesplot/reference/MCMC-traces.html): 
+```{r}
+mcmc_rank_overlay(as_draws_array(subset_draws(f_mcmc$fit_n$draws, variable = c("ce_F", "ce_M"))))
+```
+
+* Parallel chains and the `{posterior}` package also enable us to use the `rhat` Gelman-Rubin statistics and `ess` (effective sample size) estimation by Vehtari et al. (2021). See `?rhat` for more information. This is updated in the `summary` method.
+```{r}
+# Change threshold to suppress warnings
+options(bdlim_rhat_thresh_u = 1.05)
+options(bdlim_rhat_thresh_l = 0.95)
+options(bdlim_ess_thresh = 400)
+
+summary(f_mcmc)
+```
+
+## `bdlim1`
+* Fixed a bug in `bdlim1_logistic`. In [`bdlim1_logistic`](https://github.com/AnderWilson/bdlim/blob/main/R/bdlim1_logistic.R#L206), line 206, the `sum` function has to be removed.
+* I had to refactor `bdlim1` into a wrapper around `bdlim1_gaussian` and `bdlim1_logistic`. This can make programming a bit awkward. 
+  + Without this, I couldn't cleanly use the `{future}` backend. 
+  + Also, this make adding other families more easy in the future. 
+  + `bdlim1` now handles the initiation of objects, determining the family, calling the parallel chains, and combining the results across chains. The `bdlim1_gaussian` and `bdlim1_logistic` functions handle just the MCMC sampling.
+  + This is also important for the implementation of a `predict` method in the future. We will have to transform the data the same way the data was transformed before fitting.
+* This major refactor makes the code easier to maintain due to reduced repetition. Additionally, it is now easier to implement `bdlim1_gaussian`, for example, in C++ instead of R to enhance performance using something like `{Rcpp}` and `{RcppArmadillo}`. These packages greatly simplify rewriting MCMC in C++ because they handle many data type conversions and allow us to use many R functions like `rbinom` and `dbinom` functions.
+* Fixed group names using the base R `make.names()` function. So groups like "income $10k" will become "income.10k". This is needed because we use group names as column names and object names for the parameters.
+
+## Others
+* Refactored the `plot`, `summary`, and `print` methods to reduce repetition, making the code more robust.
+  + For `summary`, added the `exponentiate` as an argument to exponentiate the posterior draws or not if the family is `binomial`. Default to `FALSE` to be consistent with other logistics regressions function.
+  + Added `probs` to summary to return quantiles other than 0.025 and 0.975
+* `covars` can be NULL if no covariates are added.
+* Added `loglik_all` to `bdlim4`. Set to `TRUE` if the full loglik matrix is needed. 
+* Added robust input validations. You can see the details at `R/bdlim4.R`.
+* Added unit testings with [`{testthat}`](https://testthat.r-lib.org/).
+
+## Parallel Processing
+The current version of fitting in parallel does not work on Windows and may also be bugged on Linux. I changed the parallel backend to the `{future}` package. Parallel fitting now works properly. Additionally, in our package, we now have two possible levels of loops to parallelize over:
+
+1. Up to four model patterns. So the maximum number of beneficial parallel workers is 4.
+2. N parallel chains per model. We can fit as many chains per model as we want.
+
+The `{future}` package handles this very elegantly. More details can be found [here](https://cran.r-project.org/web/packages/future/vignettes/future-1-overview.html). For example, let's say we want to use 2 cores for the first loop and 2 cores for the second loop:
+```{r}
+#| eval: false
+set.seed(1234)
+
+plan(list(
+  tweak(multisession, workers = 2), # first level, models
+  tweak(multisession, workers = 2) # second level, chains
+))
+
+f_parallel <- bdlim4(
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  model = c("n", "b"),
+  group = as.factor(sbd_bdlim$ChildSex),
+  df = 5,
+  nits = 50,
+  chains = 2
+)
+
+plan(sequential)
+```
+
+Or if we want to parallel over just the chains, we can do so too
+```{r}
+#| eval: false
+
+plan(list(
+  sequential, # first level, models, sequential mode
+  tweak(multisession, workers = 2) # second level, chains, parallel
+))
+
+f_parallel <- bdlim4(
+  y = sbd_bdlim$bwgaz,
+  exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+  covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+  model = c("n"),
+  group = as.factor(sbd_bdlim$ChildSex),
+  df = 5,
+  nits = 50,
+  chains = 2
+)
+
+plan(sequential)
+```
+
+# Same results as version 0.4.x
+I compare the current version of the codes to my codes to show that the MCMC returned the exact same results. The current version the codes is in `R/bdlim4_0.4.R`.
+
+## Gaussian
 Current version of `bdlim4`
 ```{r}
 set.seed(1234)
@@ -52,7 +185,7 @@ fit_sex_0.4 <- bdlim4_0.4(
   covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
-  nits = 100
+  nits = 50
 )
 ```
 
@@ -65,7 +198,7 @@ fit_sex_new <- bdlim4(
   covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
-  nits = 100
+  nits = 50
 )
 ```
 
@@ -98,7 +231,7 @@ For the new version, because we use `{posterior}` package to handle multiple cha
 fit_bw_draws_new <- subset_draws(
   fit_sex_new$fit_bw$draws,
   regex = "$w_(F|M)_" # grab just the w
-) |> 
+) |>
   as_draws_df()
 
 as.matrix(fit_bw_draws_new)[1:6, 1:6]
@@ -110,7 +243,7 @@ waldo::compare(fit_bw_draws_0.4, as.matrix(fit_bw_draws_new)[, colnames(fit_bw_d
 ```
 
 ## Binomial
-Similarly for the current version of binomial:
+Similarly, for the current version of binomial:
 ```{r}
 sbd_bdlim$y_binom <- rbinom(nrow(sbd_bdlim), 1, 0.5)
 
@@ -122,7 +255,7 @@ fit_sex_0.4_binom <- bdlim4_0.4(
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
   family = "binomial",
-  nits = 100
+  nits = 50
 )
 ```
 
@@ -136,7 +269,7 @@ fit_sex_new_binom <- bdlim4(
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
   family = "binomial",
-  nits = 100
+  nits = 50
 )
 ```
 
@@ -158,7 +291,7 @@ fit_sex_0.4_binom_bw <- fit_sex_0.4_binom$fit_bw$w
 fit_sex_new_binom_bw <- subset_draws(
   fit_sex_new_binom$fit_bw$draws,
   regex = "$w_(F|M)_" # grab just the w
-) |> 
+) |>
   as_draws_df()
 
 waldo::compare(fit_sex_0.4_binom_bw, as.matrix(fit_sex_new_binom_bw)[, colnames(fit_sex_0.4_binom_bw)])
@@ -176,7 +309,7 @@ fit_sex_0.4_re <- bdlim4_0.4(
   group = as.factor(sbd_bdlim$ChildSex),
   id = sbd_bdlim$re_groups,
   df = 5,
-  nits = 100
+  nits = 50
 )
 ```
 
@@ -190,7 +323,7 @@ fit_sex_new_re <- bdlim4(
   group = as.factor(sbd_bdlim$ChildSex),
   id = sbd_bdlim$re_groups,
   df = 5,
-  nits = 100
+  nits = 50
 )
 ```
 
@@ -202,13 +335,3 @@ waldo::compare(fit_sex_0.4_re$loglik, fit_sex_new_re$loglik)
 ```{r}
 waldo::compare(fit_sex_0.4_re$WAIC, fit_sex_new_re$WAIC)
 ```
-
-# Changelog
-* Added unit testing.
-* `R/bdlim4.R`
-  + Added extensive input validation with `validate_bdlim()`.
-  + Change parallel backend to {future}
-  + Lots of changes to bdlim4
-  + Added initial changes to allow covars to be NULL
-  + make names more consistent
-  + Added package

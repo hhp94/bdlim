@@ -11,3 +11,4 @@
 ^\.Rprofile$
 ^vignettes/proposal\.qmd$
 ^vignettes/proposal_files$
+^vignettes/proposal\.html$

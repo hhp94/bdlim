@@ -11,8 +11,8 @@ test_that("validation works for gaussian family", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -33,8 +33,8 @@ test_that("validation works for binomial family", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "binomial"
@@ -53,8 +53,8 @@ test_that("validation fails for incorrect y type in gaussian family", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -74,8 +74,8 @@ test_that("validation fails for incorrect y type in binomial family", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "binomial"
@@ -95,8 +95,8 @@ test_that("validation fails for non-matrix exposure", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -116,8 +116,8 @@ test_that("validation fails for non-factor group", {
       group = as.character(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -137,8 +137,8 @@ test_that("validation fails for incorrect MCMC parameters", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = -5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -171,8 +171,8 @@ test_that("validation fails for incorrect MCMC parameters", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 60,
       chains = 1,
       family = "gaussian"
@@ -194,8 +194,8 @@ test_that("validation fails for inconsistent rows between inputs", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -211,8 +211,8 @@ test_that("validation fails for inconsistent rows between inputs", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -235,8 +235,8 @@ test_that("validation fails for NA values", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -256,8 +256,8 @@ test_that("validation fails if group is included in covars", {
       group = as.factor(d$ChildSex),
       id = NULL,
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -277,8 +277,8 @@ test_that("validation fails for incorrect id type or values", {
       group = as.factor(d$ChildSex),
       id = as.character(d$id), # Incorrect type
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -294,8 +294,8 @@ test_that("validation fails for incorrect id type or values", {
       group = as.factor(d$ChildSex),
       id = factor(1:length(d$bwgaz)), # As many `id` as observations
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -311,8 +311,8 @@ test_that("validation fails for incorrect id type or values", {
       group = as.factor(d$ChildSex),
       id = factor(rep(1, length(d$bwgaz))), # Less than 2 levels
       df = 5,
-      nits = 100,
-      nburn = 50,
+      nits = 10,
+      nburn = 5,
       nthin = 1,
       chains = 1,
       family = "gaussian"
@@ -321,3 +321,90 @@ test_that("validation fails for incorrect id type or values", {
   )
 })
 
+test_that("validation loglik_all fails", {
+  d <- sbd_bdlim[1:50, ]
+
+  expect_error(
+    validate_bdlim(
+      y = d$bwgaz,
+      exposure = as.matrix(d[, paste0("pm25_", 1:37)]),
+      covars = d[, c("MomPriorBMI"), drop = FALSE],
+      group = as.factor(d$ChildSex),
+      id = NULL,
+      df = 5,
+      nits = 10,
+      nburn = 5,
+      nthin = 1,
+      chains = 1,
+      family = "gaussian",
+      loglik_all = 1
+    )
+  )
+
+  expect_error(
+    validate_bdlim(
+      y = d$bwgaz,
+      exposure = as.matrix(d[, paste0("pm25_", 1:37)]),
+      covars = d[, c("MomPriorBMI"), drop = FALSE],
+      group = as.factor(d$ChildSex),
+      id = NULL,
+      df = 5,
+      nits = 10,
+      nburn = 5,
+      nthin = 1,
+      chains = 1,
+      family = "gaussian",
+      loglik_all = c(FALSE, TRUE)
+    )
+  )
+})
+
+test_that("loglik_all works", {
+  d <- sbd_bdlim[1:50, ]
+
+  f1 <- bdlim4(
+    y = sbd_bdlim$bwgaz,
+    exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+    covars = sbd_bdlim[, c("MomPriorBMI"), drop = FALSE],
+    group = as.factor(sbd_bdlim$ChildSex),
+    df = 5,
+    nits = 10,
+    model = "n",
+    family = "gaussian",
+    loglik_all = TRUE
+  )
+
+  expect_true(is.matrix(f1$fit_n$ll_all_keep))
+
+  f2 <- bdlim4(
+    y = sbd_bdlim$bwgaz,
+    exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+    covars = sbd_bdlim[, c("MomPriorBMI"), drop = FALSE],
+    group = as.factor(sbd_bdlim$ChildSex),
+    df = 5,
+    nits = 10,
+    model = "n",
+    family = "gaussian",
+    loglik_all = FALSE
+  )
+
+  expect_true(is.null(f2$fit_n$ll_all_keep))
+})
+
+test_that("covars can be NULL", {
+  d <- sbd_bdlim[1:50, ]
+
+  expect_no_error(
+    bdlim4(
+      y = sbd_bdlim$bwgaz,
+      exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
+      covars = NULL,
+      group = as.factor(sbd_bdlim$ChildSex),
+      df = 5,
+      nits = 10,
+      model = "n",
+      family = "gaussian",
+      loglik_all = TRUE
+    )
+  )
+})

@@ -17,7 +17,8 @@ bdlim1(
   nburn,
   nthin,
   chains,
-  family
+  family,
+  loglik_all
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ bdlim1(
 \item{chains}{Number of parallel chains per model. Not yet implemented.}
 
 \item{family}{Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.}
+
+\item{loglik_all}{Save full log likelihood matrix of kept chains for each pattern (i.e., \code{fit$fit_bw$ll_all_keep}). Needed for other validation methods such as \code{loo} but can be memory intensive. Default to \code{FALSE}.}
 }
 \value{
 A \code{bdlim1} object.
