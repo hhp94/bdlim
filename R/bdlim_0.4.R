@@ -78,7 +78,7 @@ bdlim1_0.4 <- function(y, exposure, covars, group, id = NULL, w_free, b_free, df
   y <- alldata[, "y"]
 
   # basis for weights
-  basis <- makebasis(exposure, df = df)
+  basis <- makebasis_0.4(exposure, df = df)
 
   # preliminary weighted exposures
   # make flat for all groups
@@ -336,7 +336,7 @@ bdlim1_0.4_logistic <- function(y, exposure, covars, group, id = NULL, w_free, b
   y <- alldata[, "y"]
 
   # basis for weights
-  basis <- makebasis(exposure, df = df)
+  basis <- makebasis_0.4(exposure, df = df)
 
   # preliminary weighted exposures
   # make flat for all groups

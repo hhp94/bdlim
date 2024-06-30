@@ -21,7 +21,7 @@ bdlim4(
 )
 }
 \arguments{
-\item{y}{A vector of outcomes. Numeric vectors of 0s and 1s for binomial family.}
+\item{y}{A vector of outcomes. A vector of 0s and 1s for binomial family.}
 
 \item{exposure}{A matrix or data frame of exposures, with one row per individual and one column per time the exposure is observed.}
 
@@ -41,14 +41,14 @@ bdlim4(
 
 \item{nthin}{Thinning factor for MCMC. Used for WAIC, but also passed to summary and plot functions.}
 
-\item{chains}{Number of parallel chains per model. Not yet implemented.}
+\item{chains}{Number of parallel chains per model.}
 
 \item{family}{Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.}
 
 \item{loglik_all}{Save full log likelihood matrix of kept chains for each pattern (i.e., \code{fit$fit_bw$ll_all_keep}). Needed for other validation methods such as \code{loo} but can be memory intensive. Default to \code{FALSE}.}
 }
 \value{
-A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored as well (e.g., fit$fit_bw) where the posterior draws are stored (e.g., fit$fit_bw$draws).
+A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored (e.g., \code{fit$fit_bw}) with the posterior draws (e.g., \code{fit$fit_bw$draws}).
 }
 \description{
 Main function of the \code{{bdlim}} package. Can run parallel over 1) 4 types of models and 2) multiple MCMC chains per model. See examples and \code{vignette("future-1-overview", package = "future")}.

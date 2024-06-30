@@ -14,13 +14,24 @@
 makebasis <- function(exposure, df) {
   # make ns basis
   Bns <- ns(seq(1, ncol(exposure)), df = df, intercept = TRUE)
-
   # smooth exposures with ns basis
   X <- Bns %*% qr.solve(Bns, t(exposure))
+  # SVD of smooth exposures, only keeping first df components
+  svdX <- svd(X, nu = df, nv = df)
+  # return orthonormalized basis and components needed for prediction
+  return(c(svdX, list(Bns = Bns)))
+}
+
+makebasis_0.4 <- function(exposure,df){
+  # make ns basis
+  Bns <- ns(seq(1,ncol(exposure)),df=df, intercept=TRUE)
+
+  # smooth exposures with ns basis
+  X <-  Bns %*% qr.solve(Bns,t(exposure))
 
   # SVD of smooth exposures
   svdX <- svd(X)
 
   # return orthonormalized basis
-  return(svdX$u[, 1:df])
+  return(svdX$u[,1:df])
 }

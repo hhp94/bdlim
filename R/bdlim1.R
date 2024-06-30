@@ -51,7 +51,8 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   design <- stats::model.matrix(y ~ . - 1, data = alldata)
 
   # basis for weights
-  basis <- makebasis(exposure, df = df)
+  basisObj <- makebasis(exposure, df = df)
+  basis <- basisObj$u
 
   # preliminary weighted exposures
   # make flat for all groups
@@ -178,6 +179,7 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
         posterior::subset_draws(out$draws, variable = "loglik")
       ),
       WAIC = LaplacesDemon::WAIC(out$ll_all_keep),
+      basisObj = basisObj,
       call = match.call()
     )
   )
@@ -218,6 +220,7 @@ process_chains <- function(out) {
 
   # Convert each chain to a consistent format for other MCMC packages
   draws <- posterior::as_draws_list(lapply(out, function(x) x[param]))
+  draws <- posterior::as_draws_array(draws)
 
   # Combine the log likelihood draws matrix for LOO and WAIC calculations
   ll_all_keep <- do.call(cbind, lapply(out, function(x) x[["ll_all_keep"]]))

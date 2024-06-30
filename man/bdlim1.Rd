@@ -22,7 +22,7 @@ bdlim1(
 )
 }
 \arguments{
-\item{y}{A vector of outcomes. Numeric vectors of 0s and 1s for binomial family.}
+\item{y}{A vector of outcomes. A vector of 0s and 1s for binomial family.}
 
 \item{exposure}{A matrix or data frame of exposures, with one row per individual and one column per time the exposure is observed.}
 
@@ -44,7 +44,7 @@ bdlim1(
 
 \item{nthin}{Thinning factor for MCMC. Used for WAIC, but also passed to summary and plot functions.}
 
-\item{chains}{Number of parallel chains per model. Not yet implemented.}
+\item{chains}{Number of parallel chains per model.}
 
 \item{family}{Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.}
 

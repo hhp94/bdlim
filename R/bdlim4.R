@@ -2,7 +2,7 @@
 #'
 #' Main function of the `{bdlim}` package. Can run parallel over 1) 4 types of models and 2) multiple MCMC chains per model. See examples and \code{vignette("future-1-overview", package = "future")}.
 #'
-#' @param y A vector of outcomes. Numeric vectors of 0s and 1s for binomial family.
+#' @param y A vector of outcomes. A vector of 0s and 1s for binomial family.
 #' @param exposure A matrix or data frame of exposures, with one row per individual and one column per time the exposure is observed.
 #' @param covars A matrix or data frame of covariates. Covariates should not include the grouping factor (see 'group'). Factor covariates may be included.
 #' @param group A vector of group memberships. This should be a factor variable corresponding to each row of 'covars' or 'exposure'.
@@ -12,11 +12,11 @@
 #' @param nits Number of MCMC iterations.
 #' @param nburn Number of MCMC iterations to be discarded as burn-in. Defaults to half the total number of iterations. Used for WAIC, but also passed to summary and plot functions.
 #' @param nthin Thinning factor for MCMC. Used for WAIC, but also passed to summary and plot functions.
-#' @param chains Number of parallel chains per model. Not yet implemented.
+#' @param chains Number of parallel chains per model.
 #' @param family Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.
 #' @param loglik_all Save full log likelihood matrix of kept chains for each pattern (i.e., `fit$fit_bw$ll_all_keep`). Needed for other validation methods such as `loo` but can be memory intensive. Default to `FALSE`.
 #'
-#' @return A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored as well (e.g., fit$fit_bw) where the posterior draws are stored (e.g., fit$fit_bw$draws).
+#' @return A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored (e.g., `fit$fit_bw`) with the posterior draws (e.g., `fit$fit_bw$draws`).
 #' @export
 #'
 #' @example inst/examples/bdlim_example.R

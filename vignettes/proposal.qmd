@@ -32,7 +32,7 @@ This report details the changes made to the `{bdlim}` package.
 The core functionality of the package, the MCMC chains, has not been altered. I confirmed this in the "Same results as version 0.4.x" section of the report below. Therefore, we can be confident that no bugs have been introduced.
 
 ## `bdlim4`
-* It is now possible to specify which pattern to fit in `bdlim4` using the `model` argument. Setting `model = "all"` will fit all four patterns.
+* Allow specifying which pattern to fit in `bdlim4` using the `model` argument. Setting `model = "all"` will fit all four patterns.
 
 ```{r}
 # fit just model n and b
@@ -65,7 +65,7 @@ f_mcmc <- bdlim4(
 )
 ```
 
-* Handling posterior draws of multiple chains can become very cumbersome. That's why I used the [`{posterior}`](https://mc-stan.org/posterior/index.html) package to do so in a consistent way. These objects are named `draws` and stored under each `bdlim1` fit.
+* Handling posterior draws of multiple chains can become very cumbersome. I propose to use the [`{posterior}`](https://mc-stan.org/posterior/index.html) package to do so in a consistent way. These objects are named `draws` and stored under each `bdlim1` fit.
 ```{r}
 # get the draws object of `fit_n`
 f_mcmc$fit_n$draws |> class()
@@ -78,16 +78,18 @@ merge_chains(
 )
 ```
 
-* This also enables us to use many other Bayesian packages that support `{posterior}`. For example, we can use the package [`{bayesplot}`](https://mc-stan.org/bayesplot/articles/plotting-mcmc-draws.html) to plot our MCMC chains.
+* This also enables us to use many other Bayesian packages that support `{posterior}`. For example, we can use the package [`{bayesplot}`](https://mc-stan.org/bayesplot/articles/plotting-mcmc-draws.html) to trace plot our `sigma` draws.
 ```{r}
 library(bayesplot)
 color_scheme_set("viridis")
-mcmc_trace(as_draws_array(subset_draws(f_mcmc$fit_n$draws, variable = c("sigma"))))
+mcmc_trace(subset_draws(f_mcmc$fit_n$draws, variable = c("sigma"))) +
+  panel_bg(fill = "#f1f3f5", color = NA)
 ```
 
 Or plotting the cumulative effects. See more cool plots [`here`](https://mc-stan.org/bayesplot/reference/MCMC-traces.html): 
 ```{r}
-mcmc_rank_overlay(as_draws_array(subset_draws(f_mcmc$fit_n$draws, variable = c("ce_F", "ce_M"))))
+mcmc_rank_overlay(subset_draws(f_mcmc$fit_n$draws, variable = c("ce_F", "ce_M"))) +
+  panel_bg(fill = "#f1f3f5", color = NA)
 ```
 
 * Parallel chains and the `{posterior}` package also enable us to use the `rhat` Gelman-Rubin statistics and `ess` (effective sample size) estimation by Vehtari et al. (2021). See `?rhat` for more information. This is updated in the `summary` method.
@@ -109,15 +111,6 @@ summary(f_mcmc)
   + This is also important for the implementation of a `predict` method in the future. We will have to transform the data the same way the data was transformed before fitting.
 * This major refactor makes the code easier to maintain due to reduced repetition. Additionally, it is now easier to implement `bdlim1_gaussian`, for example, in C++ instead of R to enhance performance using something like `{Rcpp}` and `{RcppArmadillo}`. These packages greatly simplify rewriting MCMC in C++ because they handle many data type conversions and allow us to use many R functions like `rbinom` and `dbinom` functions.
 * Fixed group names using the base R `make.names()` function. So groups like "income $10k" will become "income.10k". This is needed because we use group names as column names and object names for the parameters.
-
-## Others
-* Refactored the `plot`, `summary`, and `print` methods to reduce repetition, making the code more robust.
-  + For `summary`, added the `exponentiate` as an argument to exponentiate the posterior draws or not if the family is `binomial`. Default to `FALSE` to be consistent with other logistics regressions function.
-  + Added `probs` to summary to return quantiles other than 0.025 and 0.975
-* `covars` can be NULL if no covariates are added.
-* Added `loglik_all` to `bdlim4`. Set to `TRUE` if the full loglik matrix is needed. 
-* Added robust input validations. You can see the details at `R/bdlim4.R`.
-* Added unit testings with [`{testthat}`](https://testthat.r-lib.org/).
 
 ## Parallel Processing
 The current version of fitting in parallel does not work on Windows and may also be bugged on Linux. I changed the parallel backend to the `{future}` package. Parallel fitting now works properly. Additionally, in our package, we now have two possible levels of loops to parallelize over:
@@ -171,6 +164,16 @@ f_parallel <- bdlim4(
 
 plan(sequential)
 ```
+
+## Others
+* Refactored the `plot`, `summary`, and `print` methods to reduce repetition, making the code more robust.
+  + For `summary`, added the `exponentiate` as an argument to exponentiate the posterior draws or not if the family is `binomial`. Default to `FALSE` to be consistent with other logistics regressions function.
+  + Added `probs` to summary to return quantiles other than 0.025 and 0.975
+* `covars` can be `NULL` if no covariates are added.
+* `makebasis` was changed to return the fitted basis of the data as well as the full svd object. This change is needed to implement a `predict` method in the future.
+* Added `loglik_all` to `bdlim4`. Set to `TRUE` if the full loglik matrix is needed. 
+* Added robust input validations. See details here [`R/bdlim4.R`](https://github.com/hhp94/bdlim/blob/debug_bdlim1/R/bdlim4.R#L153).
+* Added unit testings with [`{testthat}`](https://testthat.r-lib.org/).
 
 # Same results as version 0.4.x
 I compare the current version of the codes to my codes to show that the MCMC returned the exact same results. The current version the codes is in `R/bdlim4_0.4.R`.
@@ -259,7 +262,7 @@ fit_sex_0.4_binom <- bdlim4_0.4(
 )
 ```
 
-My codes
+My version
 ```{r}
 set.seed(1234)
 fit_sex_new_binom <- bdlim4(
