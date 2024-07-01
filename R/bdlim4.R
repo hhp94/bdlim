@@ -125,6 +125,7 @@ bdlim4 <- function(
     out[[x]]$loglik
   }))
   names(out$loglik) <- model
+  row.names(out$loglik) <- NULL
 
   # WAIC comparison
   out$WAIC <- as.data.frame(lapply(fit_names, function(x) {
@@ -231,9 +232,9 @@ validate_bdlim <- function(
   params <- list(df = df, nits = nits, nburn = nburn, nthin = nthin, chains = chains)
   lapply(names(params), function(name) validate_mcmc_param(name, params[[name]]))
 
-  if (any(c(nits == 0, chains == 0, nthin == 0, df == 0))) stop("`df`, `nits`, `chains`, and `nthin` must be positive.")
+  if (any(c(df == 0, nits == 0, chains == 0, nthin == 0))) stop("`df`, `nits`, `chains`, and `nthin` must be positive.")
   if (nits <= nburn) stop("`nits` has to be larger than `nburn`.")
-  if (nthin > (nits - nburn)) stop("`nthin` cannot be larger or equal to the kept chain length (nits - nburn).")
+  if (nthin > (nits - nburn)) stop("`nthin` cannot be larger than the kept chain length (nits - nburn).")
 
   # Validate lengths and number of rows
   ny <- length(y)
