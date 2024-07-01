@@ -12,5 +12,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom Rcpp sourceCpp
+#' @useDynLib bdlim, .registration = TRUE
 ## usethis namespace: end
 NULL
