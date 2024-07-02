@@ -63,4 +63,3 @@ check_mcmc_convergence <- function(object) {
     warning("Some parameters have `ess_tail` < ", ess_thresh, ". Increase `nits`, `chains`, or `nthin` to improve effective sample size.")
   }
 }
-

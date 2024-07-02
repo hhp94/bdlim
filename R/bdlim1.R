@@ -21,7 +21,7 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   # group has to be the first factor, otherwise stats::model.matrix won't create a
   # term for each group
   alldata <- data.frame(y = y, group = group)
-  if(!is.null(covars)) {
+  if (!is.null(covars)) {
     alldata <- droplevels(cbind(alldata, covars))
   }
 

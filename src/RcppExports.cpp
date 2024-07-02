@@ -12,25 +12,24 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // bdlim1_gaussian_cpp
-Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y, arma::u64 nits, const arma::mat& design, bool REmodel, double REprec, arma::u64 nRE, arma::u64 n_regcoef);
-RcppExport SEXP _bdlim_bdlim1_gaussian_cpp(SEXP ySEXP, SEXP nitsSEXP, SEXP designSEXP, SEXP REmodelSEXP, SEXP REprecSEXP, SEXP nRESEXP, SEXP n_regcoefSEXP) {
+Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y, const arma::mat& design, uint32_t nits, bool REmodel, uint32_t nRE, const Rcpp::List& w_group_ids);
+RcppExport SEXP _bdlim_bdlim1_gaussian_cpp(SEXP ySEXP, SEXP designSEXP, SEXP nitsSEXP, SEXP REmodelSEXP, SEXP nRESEXP, SEXP w_group_idsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::u64 >::type nits(nitsSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type design(designSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type nits(nitsSEXP);
     Rcpp::traits::input_parameter< bool >::type REmodel(REmodelSEXP);
-    Rcpp::traits::input_parameter< double >::type REprec(REprecSEXP);
-    Rcpp::traits::input_parameter< arma::u64 >::type nRE(nRESEXP);
-    Rcpp::traits::input_parameter< arma::u64 >::type n_regcoef(n_regcoefSEXP);
-    rcpp_result_gen = Rcpp::wrap(bdlim1_gaussian_cpp(y, nits, design, REmodel, REprec, nRE, n_regcoef));
+    Rcpp::traits::input_parameter< uint32_t >::type nRE(nRESEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type w_group_ids(w_group_idsSEXP);
+    rcpp_result_gen = Rcpp::wrap(bdlim1_gaussian_cpp(y, design, nits, REmodel, nRE, w_group_ids));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_bdlim_bdlim1_gaussian_cpp", (DL_FUNC) &_bdlim_bdlim1_gaussian_cpp, 7},
+    {"_bdlim_bdlim1_gaussian_cpp", (DL_FUNC) &_bdlim_bdlim1_gaussian_cpp, 6},
     {NULL, NULL, 0}
 };
 

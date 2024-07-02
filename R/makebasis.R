@@ -22,16 +22,16 @@ makebasis <- function(exposure, df) {
   return(c(svdX, list(Bns = Bns)))
 }
 
-makebasis_0.4 <- function(exposure,df){
+makebasis_0.4 <- function(exposure, df) {
   # make ns basis
-  Bns <- ns(seq(1,ncol(exposure)),df=df, intercept=TRUE)
+  Bns <- ns(seq(1, ncol(exposure)), df = df, intercept = TRUE)
 
   # smooth exposures with ns basis
-  X <-  Bns %*% qr.solve(Bns,t(exposure))
+  X <- Bns %*% qr.solve(Bns, t(exposure))
 
   # SVD of smooth exposures
   svdX <- svd(X)
 
   # return orthonormalized basis
-  return(svdX$u[,1:df])
+  return(svdX$u[, 1:df])
 }

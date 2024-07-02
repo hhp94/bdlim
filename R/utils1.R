@@ -41,45 +41,50 @@ debug_bdlim1_gaussian <- function() {
   return(result)
 }
 
-bdlim1_gaussian_partial <- function(y, nits, design, REmodel, REprec, nRE, n_regcoef) {
-  # Initialize variables
+#' @keywords internal
+#' @noRd
+bdlim1_gaussian_partial <- function(
+    y, nits, design, nRE, REmodel, w_group_ids
+  ) {
+
+  # starting values specific for `bdlim1_gaussian`
   n <- length(y)
   sigma <- stats::sd(y)
-  sigma_keep <- numeric(nits)
-  pred_mean_model_scale <- numeric(n)
+  sigma_keep <- rep(NA, nits)
+  pred_mean_model_scale <- NA
+  n_regcoef <- ncol(design)
+  RElocation <- 1:nRE
+  REprec <- 0.01
+  n_weight_groups <- length(w_group_ids)
 
-  # Declare V outside the loop
-  V <- matrix(0, nrow = ncol(design), ncol = ncol(design))
-
-  # MCMC loop
   for (i in 1:nits) {
-    # Update regression coefficients
-    V <- t(design) %*% design / (sigma^2)
+    # update regression coefficients
+    V <- t(design) %*% design / (sigma ^ 2)
+    diag(V) <- diag(V) + c(rep(REprec, nRE), rep(0.01, n_regcoef - nRE))
+    V <- chol2inv(chol(V))
+    m <- drop(V %*% (t(design) %*% y)) / (sigma ^ 2)
+    regcoef <- drop(m + t(chol(V)) %*% stats::rnorm(n_regcoef))
 
-    # Calculate diag_v inside the loop
+    # update sigma for Gaussian model
+    sigma <- 1 / sqrt(stats::rgamma(1, .5 + n / 2, .5 + sum((
+      y - design %*% regcoef
+    ) ^ 2) / 2))
+
+    # update random effect variance if a RE model
     if (REmodel) {
-      diag_v <- c(rep(REprec, nRE), rep(1 / 100, n_regcoef - nRE))
-    } else {
-      diag_v <- rep(1 / 100, n_regcoef)
+      REprec <- stats::rgamma(1, .5 + nRE / 2, .5 + sum(regcoef[RElocation] ^ 2) / 2)
     }
-
-    # Update diagonal of V
-    diag(V) <- diag(V) + diag_v
-
-    # Store sigma for this iteration
-    sigma_keep[i] <- sigma
-
-    # Other calculations will go here
   }
 
-  # Prepare and return results
-  out <- list(
-    n = n,
-    sigma = sigma,
-    sigma_keep = sigma_keep,
-    pred_mean_model_scale = pred_mean_model_scale,
-    V = V
-  )
+  for (j in 1:n_weight_groups) {
+    # log likelihood to start update of theta/w
+    ll <- sum(stats::dnorm(y[w_group_ids[[j]]], design[w_group_ids[[j]], ] %*% regcoef, sigma, log = TRUE))
+  }
 
+  out <- list(sigma = sigma, regcoef = regcoef, m = m, V = V, ll = ll)
+
+  if (REmodel) {
+    out$REprec <- REprec
+  }
   return(out)
 }
