@@ -5,3 +5,7 @@ bdlim1_gaussian_cpp <- function(y, design_input, nits, REmodel, nRE, w_group_ids
     .Call(`_bdlim_bdlim1_gaussian_cpp`, y, design_input, nits, REmodel, nRE, w_group_ids, basis, w_input, theta_input, Edesign, exposure)
 }
 
+bdlim1_logistic_cpp <- function(y, design_input, nits, REmodel, nRE, w_group_ids, basis, w_input, theta_input, Edesign, exposure) {
+    .Call(`_bdlim_bdlim1_logistic_cpp`, y, design_input, nits, REmodel, nRE, w_group_ids, basis, w_input, theta_input, Edesign, exposure)
+}
+

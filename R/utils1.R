@@ -123,10 +123,12 @@ bdlim1_gaussian_partial <- function(y,
 
       # update theta (w and design are already updated)
       theta[j, ] <- theta_prop
+
+      # keep w draws
+      w_keep[j, , i] <- w[j, ]
     }
 
     # save values
-    w_keep[i, ] <- c(t(w))
     regcoef_keep[i, ] <- regcoef
     sigma_keep[i] <- sigma
     if (REmodel) {

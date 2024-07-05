@@ -167,7 +167,7 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
     iter_keep = iter_keep
   )
 
-  if(!cpp) {
+  if (!cpp) {
     fit_args <- c(fit_args, r_args)
   }
 
@@ -247,8 +247,10 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   return(out)
 }
 
+#' Process the CPP output to harmonize with the R output
 #'
 #' @keywords internal
+#'
 #' @noRd
 process_cpp <- function(out, w_keep, regcoef_keep, iter_keep, names_groups, b_free, w_free, nRE, n_regcoef) {
   dimnames(out$w_keep) <- dimnames(w_keep)
@@ -268,10 +270,14 @@ process_cpp <- function(out, w_keep, regcoef_keep, iter_keep, names_groups, b_fr
   out$w_keep <- NULL
   out <- c(
     out,
-    asplit(out$regcoef_keep[, (nRE + 1):n_regcoef], 2),
+    asplit(out$regcoef_keep, 2),
     asplit(out$w_dlfun_ce, 2)
   )
   out$w_dlfun_ce <- NULL
+  if (!is.null(out$REprec_keep)) {
+    out$REsd <- 1 / drop(sqrt(out$REprec_keep))
+    out$REprec_keep <- NULL
+  }
   out$regcoef_keep <- NULL
   return(out)
 }
@@ -457,7 +463,7 @@ bdlim1_gaussian <- function(
   )
 
   out <- c(
-    asplit(regcoef_keep[, (nRE + 1):n_regcoef], 2),
+    asplit(regcoef_keep, 2),
     list(sigma = sigma_keep),
     asplit(w_dlfun_ce, 2),
     list(loglik = ll_sum_keep),
@@ -467,7 +473,6 @@ bdlim1_gaussian <- function(
   if (REmodel) {
     out <- c(
       out,
-      asplit(regcoef_keep[, 1:nRE], 2),
       list(REsd = 1 / sqrt(REprec_keep))
     )
   }
@@ -578,7 +583,7 @@ bdlim1_logistic <- function(
     }
   }
 
-  # Flatten w_keep after draw from group * times * iters to iters * group_times
+    # Flatten w_keep after draw from group * times * iters to iters * group_times
   w_dlfun_ce <- process_w_dlfun_ce(
     w_keep = w_keep,
     regcoef_keep = regcoef_keep,
@@ -588,7 +593,7 @@ bdlim1_logistic <- function(
   )
 
   out <- c(
-    asplit(regcoef_keep[, (nRE + 1):n_regcoef], 2),
+    asplit(regcoef_keep, 2),
     asplit(w_dlfun_ce, 2),
     list(loglik = ll_sum_keep),
     list(ll_all_keep = ll_all_keep)
@@ -597,30 +602,9 @@ bdlim1_logistic <- function(
   if (REmodel) {
     out <- c(
       out,
-      asplit(regcoef_keep[, 1:nRE], 2),
       list(REsd = 1 / sqrt(REprec_keep))
     )
   }
 
   return(out)
 }
-
-# flatten_w_keep <- function(w_keep) {
-#   n_groups <- dim(w_keep)[1]
-#   n_times <- dim(w_keep)[2]
-#   n_iterations <- dim(w_keep)[3]
-#
-#   # Initialize list to store matrices for each group
-#   group_matrices <- vector("list", n_groups)
-#
-#   for (g in seq_len(n_groups)) {
-#     group_matrix <- matrix(w_keep[g,,], nrow = n_iterations, ncol = n_times)
-#     colnames(group_matrix) <- paste0(dimnames(w_keep)[[1]][g], "_", dimnames(w_keep)[[2]])
-#     group_matrices[[g]] <- group_matrix
-#   }
-#
-#   # Combine all group matrices
-#   w_keep_flat <- do.call(cbind, group_matrices)
-#
-#   return(w_keep_flat)
-# }

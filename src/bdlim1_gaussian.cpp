@@ -53,16 +53,22 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
   }
   arma::uvec RElocation = arma::regspace<arma::uvec>(0, nRE - 1);
 
+  // init group wise params
   double ll;
 
-  // convert index of group to 0 based and arma::uvec type
+  // init pointers to the indices of the groups (which rows belong to which group)
   uint16_t n_weight_groups = w_group_ids.size();
-  Rcpp::List group_indices_list(n_weight_groups);
+  std::vector<arma::uvec> g_idx_vecs(n_weight_groups);
+  std::vector<const arma::uvec*> g_idx_ptrs(n_weight_groups);
+
+  // convert index of group to 0 based and arma::uvec type then store the pointers
   for (uint16_t j = 0; j < n_weight_groups; ++j) {
-    group_indices_list[j] = Rcpp::as<arma::uvec>(w_group_ids[j]) - 1;
+    g_idx_vecs[j] = Rcpp::as<arma::uvec>(w_group_ids[j]) - 1;
+    g_idx_ptrs[j] = &g_idx_vecs[j];
   }
 
-  arma::uvec Edesign_loc = arma::regspace<arma::uvec>(design.n_cols - n_weight_groups, design.n_cols - 1);
+  // store position of Edesign columns in the design matrix. is is number of cumulative effect
+  arma::uvec Edesign_loc = arma::regspace<arma::uvec>(design.n_cols - Edesign.n_cols, design.n_cols - 1);
 
   // init ellipse slice params
   uint32_t df = basis.n_cols;
@@ -74,15 +80,25 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
   arma::rowvec theta_prop(df);
   arma::vec weighted_exposure(n_exposures);
 
+  // init Edesign_subsets, which is an Edesign matrix for each group
+  std::vector<arma::mat> Edesign_subsets(n_weight_groups);
+  for (uint16_t j = 0; j < n_weight_groups; ++j) {
+    Edesign_subsets[j] = Edesign.rows(*g_idx_ptrs[j]);
+  }
+
   // init storage variables
+  // 3D array groups * times * nits
   arma::cube w_keep(n_weight_groups, n_exposures, nits);
-  arma::mat regcoef_keep(nits, n_regcoef);
+  // iters in columns. Save nits t() calls
+  arma::mat regcoef_keep(n_regcoef, nits);
   arma::vec sigma_keep(nits);
-  arma::mat ll_all_keep(nits, n);
+  arma::mat ll_all_keep(n, nits);
   arma::vec REprec_keep;
   if (REmodel) {
     REprec_keep.set_size(nits);
   }
+  // almost 1 to 1 translation of the R codes to C++ codes
+  arma::mat weighted_exposure_expanded;
 
   for (uint32_t i = 0; i < nits; ++i) {
     V = arma::symmatu(design.t() * design / sigma_squared);
@@ -109,9 +125,7 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
     constant = -0.5 * LOG_2PI - std::log(sigma);
 
     for (uint16_t j = 0; j < n_weight_groups; ++j) {
-      const arma::uvec& group_indices = group_indices_list[j];
-
-      ll = arma::sum(log_likelihood(y.elem(group_indices), design.rows(group_indices), regcoef, inv_sigma, constant));
+      ll = arma::sum(log_likelihood(y.elem(*g_idx_ptrs[j]), design.rows(*g_idx_ptrs[j]), regcoef, inv_sigma, constant));
       threshold = ll + std::log(std::max(Rcpp::runif(1, 0.0, 1.0)[0], EPSILON));
       ll = threshold - 1;
 
@@ -126,11 +140,10 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
         w.row(j) /= arma::norm(w.row(j));
         w.row(j) *= arma::sign(arma::sum(w.row(j)));
 
-        weighted_exposure = exposure.rows(group_indices) * w.row(j).t();
+        weighted_exposure = exposure.rows(*g_idx_ptrs[j]) * w.row(j).t();
+        design.submat(*g_idx_ptrs[j], Edesign_loc) = Edesign_subsets[j].each_col() % weighted_exposure;
 
-        design.submat(group_indices, Edesign_loc) = Edesign.rows(group_indices) % arma::repmat(weighted_exposure, 1, Edesign.n_cols);
-
-        ll = arma::sum(log_likelihood(y.elem(group_indices), design.rows(group_indices), regcoef, inv_sigma, constant));
+        ll = arma::sum(log_likelihood(y.elem(*g_idx_ptrs[j]), design.rows(*g_idx_ptrs[j]), regcoef, inv_sigma, constant));
 
         if (eta < 0) {
           eta_min = eta;
@@ -144,14 +157,14 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
       w_keep.slice(i).row(j) = w.row(j);
     }
 
-    regcoef_keep.row(i) = regcoef.t();
+    regcoef_keep.col(i) = regcoef;
     sigma_keep(i) = sigma;
 
     if (REmodel) {
       REprec_keep(i) = REprec;
     }
 
-    ll_all_keep.row(i) = log_likelihood(y, design, regcoef, inv_sigma, constant).t();
+    ll_all_keep.col(i) = log_likelihood(y, design, regcoef, inv_sigma, constant);
   }
 
   Rcpp::List result = Rcpp::List::create(
@@ -163,9 +176,9 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
     // Rcpp::Named("eta") = eta,
     // Rcpp::Named("theta") = theta,
     Rcpp::Named("w_keep") = w_keep,
-    Rcpp::Named("regcoef_keep") = regcoef_keep,
+    Rcpp::Named("regcoef_keep") = regcoef_keep.t(),
     Rcpp::Named("sigma_keep") = sigma_keep,
-    Rcpp::Named("ll_all_keep") = ll_all_keep.t()
+    Rcpp::Named("ll_all_keep") = ll_all_keep
   );
 
   if (REmodel) {

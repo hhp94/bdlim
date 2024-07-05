@@ -35,8 +35,12 @@ plot.summary.bdlim4 <- function(x, ...) {
       geom_pointrange()
   }
 
+  if (any(x$dlfun$group != x$dlfun$variable)) {
+    p <- p +
+      facet_wrap(~group)
+  }
+
   p <- p +
-    facet_wrap(~group) +
     theme_light() +
     ylab("Estimated distributed lag function") +
     xlab("Exposure time")
