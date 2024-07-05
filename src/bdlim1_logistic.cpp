@@ -1,7 +1,8 @@
-#include <RcppArmadillo.h>
 #include <cmath>
-
+#include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
+#include "BayesLogit/polyagamma_wrapper.h"
+
 #define TWO_PI (2.0 * M_PI)
 #define LOG_2PI std::log(TWO_PI)
 #define EPSILON std::numeric_limits<double>::min()
