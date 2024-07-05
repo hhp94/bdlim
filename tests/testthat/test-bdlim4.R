@@ -177,7 +177,7 @@ test_that("validation fails for incorrect MCMC parameters", {
       chains = 1,
       family = "gaussian"
     ),
-    "`nthin` cannot be larger or equal"
+    "`nthin` cannot be larger"
   )
 })
 

@@ -15,7 +15,7 @@
 #' @param chains Number of parallel chains per model.
 #' @param family Model family to use. Supported options are "gaussian" for a normal/gaussian linear model, and "binomial" for a logistic model.
 #' @param loglik_all Save full log likelihood matrix of kept chains for each pattern (i.e., `fit$fit_bw$ll_all_keep`). Needed for other validation methods such as `loo` but can be memory intensive. Default to `FALSE`.
-#'
+#' @param cpp (Experimental) Fit using C++. Default to `FALSE`.
 #' @return A list of results from each pattern of modification, including model comparison metrics. The individual patterns are stored (e.g., `fit$fit_bw`) with the posterior draws (e.g., `fit$fit_bw$draws`).
 #' @export
 #'
@@ -33,7 +33,8 @@ bdlim4 <- function(
     nthin = 1,
     chains = 1,
     family = c("gaussian", "binomial"),
-    loglik_all = FALSE) {
+    loglik_all = FALSE,
+    cpp = FALSE) {
   # Preliminary validation
   family <- match.arg(family)
   model <- unique(match.arg(model, several.ok = TRUE))
@@ -46,7 +47,7 @@ bdlim4 <- function(
   validate_bdlim(
     y = y, exposure = exposure, covars = covars, group = group, id = id, df = df,
     nits = nits, nburn = nburn, nthin = nthin, chains = chains, family = family,
-    loglik_all = loglik_all
+    loglik_all = loglik_all, cpp = cpp
   )
 
   # Drop unused levels of group and id
@@ -111,7 +112,8 @@ bdlim4 <- function(
           nthin = nthin,
           chains = chains,
           family = family,
-          loglik_all = loglik_all
+          loglik_all = loglik_all,
+          cpp = cpp
         )
       }
     ), future_args)
@@ -163,7 +165,8 @@ validate_bdlim <- function(
     nthin,
     chains,
     family = c("gaussian", "binomial"),
-    loglik_all = FALSE) {
+    loglik_all = FALSE,
+    cpp = FALSE) {
   # Validate `family`
   family <- match.arg(family)
 
@@ -250,6 +253,10 @@ validate_bdlim <- function(
   }
 
   if (!is.logical(loglik_all) || length(loglik_all) != 1) {
+    stop("`loglik_all` must be a boolean.")
+  }
+
+  if (!is.logical(cpp) || length(cpp) != 1) {
     stop("`loglik_all` must be a boolean.")
   }
 

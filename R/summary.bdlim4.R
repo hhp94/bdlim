@@ -79,7 +79,7 @@ summary.bdlim1 <- function(object, exponentiate = FALSE, probs = c(0.025, 0.975)
   # $ ensures we've reached the end of the string
   # \\1 in the replacement refers to the captured group.
   # This same pattern is used for `dlfun`.
-  out$cumulative$group <- sub("^ce_(.*)$", "\\1", out$cumulative$variable)
+  out$cumulative$group <- sub("^.ce_(.*)$", "\\1", out$cumulative$variable)
 
   # Move group column to the front for cumulative effects
   out$cumulative <- out$cumulative[, c("group", setdiff(names(out$cumulative), "group"))]
@@ -94,7 +94,7 @@ summary.bdlim1 <- function(object, exponentiate = FALSE, probs = c(0.025, 0.975)
 
   # Extract time and group for distributed lag functions
   out$dlfun$time <- as.numeric(sub(".*_(\\d+)$", "\\1", out$dlfun$variable))
-  out$dlfun$group <- sub("^Ew_(.*)_\\d+$", "\\1", out$dlfun$variable)
+  out$dlfun$group <- sub("^.dl_(.*)_\\d+$", "\\1", out$dlfun$variable)
 
   # Move group and time columns to the front for distributed lag functions
   out$dlfun <- out$dlfun[, c("group", "time", setdiff(names(out$dlfun), c("group", "time")))]

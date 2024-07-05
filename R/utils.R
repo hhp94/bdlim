@@ -50,16 +50,30 @@ check_mcmc_convergence <- function(object) {
   ess_thresh <- getOption("bdlim_ess_thresh", 400)
   stopifnot("`ess_thresh` must be a positive integer. Change with `options(ess_thresh = 400)`." = length(ess_thresh) == 1 && (as.integer(ess_thresh) == ess_thresh))
 
-  if (any(object$MCMC_check$rhat >= rhat_thresh_u)) {
+  rhat_vec <- object$MCMC_check$rhat
+  ess_bulk_vec <- object$MCMC_check$ess_bulk
+  ess_bulk_tail <- object$MCMC_check$ess_tail
+
+  if (anyNA(c(rhat_vec, ess_bulk_vec, ess_bulk_tail))) {
+    warning("`NA` value(s) detected in MCMC convergence statistics. This is unexpected. Check the MCMC parameters.")
+  }
+  rhat_vec <- stats::na.omit(rhat_vec)
+  ess_bulk_vec <- stats::na.omit(ess_bulk_vec)
+  ess_bulk_tail <- stats::na.omit(ess_bulk_tail)
+  if (any(length(rhat_vec) == 0 | length(ess_bulk_tail) == 0 | length(ess_bulk_vec) == 0)) {
+    return(invisible())
+  }
+
+  if (any(rhat_vec >= rhat_thresh_u)) {
     warning("Some parameters have `rhat` >= ", rhat_thresh_u, ". Increase `nits`, `chains`, or `nthin` to improve convergence.")
   }
-  if (any(object$MCMC_check$rhat <= rhat_thresh_l)) {
+  if (any(rhat_vec <= rhat_thresh_l)) {
     warning("Some parameters have `rhat` <= ", rhat_thresh_l, ". Increase `nits`, `chains`, or `nthin` to improve convergence.")
   }
-  if (any(object$MCMC_check$ess_bulk < ess_thresh)) {
+  if (any(ess_bulk_vec < ess_thresh)) {
     warning("Some parameters have `ess_bulk` < ", ess_thresh, ". Increase `nits`, `chains`, or `nthin` to improve effective sample size.")
   }
-  if (any(object$MCMC_check$ess_tail < ess_thresh)) {
+  if (any(ess_bulk_tail < ess_thresh)) {
     warning("Some parameters have `ess_tail` < ", ess_thresh, ". Increase `nits`, `chains`, or `nthin` to improve effective sample size.")
   }
 }
