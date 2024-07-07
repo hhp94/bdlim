@@ -31,7 +31,7 @@
 
 // Throw runtime exception or print message and return.
 #ifndef TREOR
-#ifndef NTHROW
+#ifndef BAYESLOGIT_NTHROW
 #define TREOR(MESS, VAL) throw std::runtime_error(MESS);
 #else
 #ifndef USE_R

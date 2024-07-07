@@ -1,6 +1,6 @@
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
-#include "BayesLogit/polyagamma_wrapper.h"
+#include "polyagamma_wrapper.h"
 #include <cmath>
 
 #define TWO_PI (2.0 * M_PI)

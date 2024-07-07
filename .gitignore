@@ -9,3 +9,4 @@ docs
 pkgdown
 .Rprofile
 vignettes/proposal_files
+vignettes/benchmark_files

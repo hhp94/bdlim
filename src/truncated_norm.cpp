@@ -64,7 +64,7 @@ double tnorm(double left)
             ppsl = norm(0.0, 1.0);
             if (ppsl > left) return ppsl;
             check_R_interupt(count++);
-            #ifndef NDEBUG
+            #ifndef BAYESLOGIT_NDEBUG
             if (count > RCHECK * 1000) {
                 #ifndef USE_R
 		fprintf(stderr, "left < 0; count: %i\n", count);
@@ -84,7 +84,7 @@ double tnorm(double left)
             rho  = exp( -0.5 * (ppsl - astar) * (ppsl - astar) );
             if (unif() < rho) return ppsl;
             check_R_interupt(count++);
-            #ifndef NDEBUG
+            #ifndef BAYESLOGIT_NDEBUG
             if (count > RCHECK * 1000) {
 		#ifndef USE_R
 		fprintf(stderr, "left > 0; count: %i\n", count);
@@ -155,7 +155,7 @@ double tnorm(double left, double right)
                 rho  = exp(0.5 * (left*left - ppsl*ppsl));
                 if (unif() < rho) return ppsl;
                 check_R_interupt(count++);
-                #ifndef NDEBUG
+                #ifndef BAYESLOGIT_NDEBUG
                 if (count > RCHECK * 10) {
 		    #ifndef USE_R
 		    fprintf(stderr, "left >= 0, right <= lbound; count: %i\n", count);
@@ -174,7 +174,7 @@ double tnorm(double left, double right)
                 rho  = exp(-0.5 * ppsl * ppsl);
                 if (unif() < rho) return ppsl;
                 check_R_interupt(count++);
-                #ifndef NDEBUG
+                #ifndef BAYESLOGIT_NDEBUG
                 if (count > RCHECK * 10) {
 		    #ifndef USE_R
 		    fprintf(stderr, "First, left < 0, right >= 0, count: %i\n", count);
@@ -190,7 +190,7 @@ double tnorm(double left, double right)
                 ppsl = norm(0., 1.);
                 if (left < ppsl && ppsl < right) return ppsl;
                 check_R_interupt(count++);
-                #ifndef NDEBUG
+                #ifndef BAYESLOGIT_NDEBUG
                 if (count > RCHECK * 10) {
 		    #ifndef USE_R
 		    fprintf(stderr, "Second, left < 0, right > 0, count: %i\n", count);

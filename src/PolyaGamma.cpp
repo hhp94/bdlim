@@ -39,7 +39,7 @@ void PolyaGamma::set_trunc(int trunc)
 {
   
   if (trunc < 1) {
-  #ifndef NTHROW
+  #ifndef BAYESLOGIT_NTHROW
     throw std::invalid_argument("PolyaGamma(int trunc): trunc < 1.");
   #else
     #ifndef USE_R
@@ -149,7 +149,7 @@ double PolyaGamma::rtigauss(double Z)
 double PolyaGamma::draw(int n, double z)
 {
   if (n < 1) {
-  #ifndef NTHROW
+  #ifndef BAYESLOGIT_NTHROW
     throw std::invalid_argument("PolyaGamma::draw: n < 1.");
   #else
     #ifndef USE_R

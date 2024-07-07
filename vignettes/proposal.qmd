@@ -114,7 +114,7 @@ summary(f_mcmc)
   + Also, this make adding other families more easy in the future. 
   + `bdlim1` now handles the initiation of objects, determining the family, calling the parallel chains, and combining the results across chains. The `bdlim1_gaussian` and `bdlim1_logistic` functions handle just the MCMC sampling.
   + This is also important for the implementation of a `predict` method in the future. We will have to transform the data the same way the data was transformed before fitting.
-* This major refactor makes the code easier to maintain due to reduced repetition. Additionally, it is now easier to implement `bdlim1_gaussian`, for example, in C++ instead of R to enhance performance using something like `{Rcpp}` and `{RcppArmadillo}`. See below for an experimental implementation in `{RcppArmadillo}`
+* This major refactor makes the code easier to maintain due to reduced repetition. Additionally, it is now easier to implement `bdlim1_gaussian`, for example, in C++ instead of R to enhance performance using something like `{Rcpp}` and `{RcppArmadillo}`.
 * Fixed group names using the base R `make.names()` function. So groups like "income $10k" will become "income.10k". This is needed because we use group names as column names and object names for the parameters.
 
 ## Parallel Processing
@@ -179,127 +179,6 @@ plan(sequential)
 * Added `loglik_all` to `bdlim4`. Set to `TRUE` if the full loglik matrix is needed. 
 * Added robust input validations. See details here [`R/bdlim4.R`](https://github.com/hhp94/bdlim/blob/debug_bdlim1/R/bdlim4.R#L153).
 * Added unit testings with [`{testthat}`](https://testthat.r-lib.org/).
-
-# `{RcppArmadillo}`
-Given the refractor, I've implemented bdlim1 in `{RcppArmadillo}`.
-
-## Gaussian
-```{r}
-plot_dlfun <- function(r_draws, cpp_draws, iters) {
-  r_fit_dlfun <- as_draws_df(
-    subset_draws(r_draws, variable = ".dl", regex = TRUE, iteration = iters)
-  ) |> 
-    tidyr::pivot_longer(cols = contains(".dl"))
-  r_fit_dlfun$fit <- "R"
-  
-  cpp_fit_dlfun <- as_draws_df(
-    subset_draws(cpp_draws, variable = ".dl", regex = TRUE, iteration = iters)
-  ) |> 
-    tidyr::pivot_longer(cols = contains(".dl"))
-  
-  cpp_fit_dlfun$fit <- "C++"
-  
-  dplyr::bind_rows(r_fit_dlfun, cpp_fit_dlfun)
-}
-```
-
-```{r}
-gaussian_wrap <- function(seed, fit_cpp, nits) {
-  set.seed(seed)
-  bdlim4(
-    y = sbd_bdlim$bwgaz,
-    exposure = sbd_bdlim[, paste0("pm25_", 32:37)],
-    covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
-    group = as.factor(sbd_bdlim$ChildSex),
-    model = "n",
-    df = 5,
-    nits = nits,
-    cpp = fit_cpp
-  )
-}
-```
-
-For Gaussian, using `{Rcpp}` we get the exact results as the R fit
-```{r}
-g_r <- gaussian_wrap(seed = 1234, fit_cpp = FALSE, nits = 200)
-g_cpp <- gaussian_wrap(seed = 1234, fit_cpp = TRUE, nits = 200)
-
-plot_dlfun(g_r$fit_n$draws, g_cpp$fit_n$draws, iters = 101:200) |> 
-  ggplot(aes(y = value, x = fit, color = fit, fill = fit)) +
-  facet_wrap(~name, scales = "free_y") +
-  stat_slab(alpha = 0.75) +
-  stat_pointinterval(position = position_dodge(width = .2, preserve = "single")) +
-  bayesplot::theme_default()
-```
-
-```{r}
-bench::mark(
-  gaussian_wrap(seed = 1234, fit_cpp = FALSE, nits = 200),
-  gaussian_wrap(seed = 1234, fit_cpp = TRUE, nits = 200),
-  check = F
-)
-```
-
-## logistic
-```{r}
-plot_dlfun <- function(r_draws, cpp_draws, iters) {
-  r_fit_dlfun <- as_draws_df(
-    subset_draws(r_draws, variable = ".dl", regex = TRUE, iteration = iters)
-  ) |> 
-    tidyr::pivot_longer(cols = contains(".dl"))
-  r_fit_dlfun$fit <- "R"
-  
-  cpp_fit_dlfun <- as_draws_df(
-    subset_draws(cpp_draws, variable = ".dl", regex = TRUE, iteration = iters)
-  ) |> 
-    tidyr::pivot_longer(cols = contains(".dl"))
-  
-  cpp_fit_dlfun$fit <- "C++"
-  
-  dplyr::bind_rows(r_fit_dlfun, cpp_fit_dlfun)
-}
-```
-
-```{r}
-set.seed(12345)
-sbd_bdlim$y_binom <- rbinom(nrow(sbd_bdlim), 1, 0.5)
-
-logistic_wrap <- function(seed, fit_cpp, nits) {
-  set.seed(seed)
-  bdlim4(
-    y = sbd_bdlim$y_binom,
-    exposure = sbd_bdlim[, paste0("pm25_", 32:37)],
-    covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
-    group = as.factor(sbd_bdlim$ChildSex),
-    model = "n",
-    family = "binomial",
-    df = 5,
-    nits = nits,
-    cpp = fit_cpp
-  )
-}
-```
-
-For logistic, using `{Rcpp}` get similar results but not exact same.
-```{r}
-l_r <- logistic_wrap(seed = 1234, fit_cpp = FALSE, nits = 1000)
-l_cpp <- logistic_wrap(seed = 1234, fit_cpp = TRUE, nits = 1000)
-
-plot_dlfun(l_r$fit_n$draws, l_cpp$fit_n$draws, iters = 501:1000) |> 
-  ggplot(aes(y = value, x = fit, color = fit, fill = fit)) +
-  facet_wrap(~name, scales = "free_y") +
-  stat_slab(alpha = 0.75) +
-  stat_pointinterval(position = position_dodge(width = .2, preserve = "single")) +
-  bayesplot::theme_default()
-```
-
-```{r}
-bench::mark(
-  logistic_wrap(seed = 1234, fit_cpp = FALSE, nits = 200),
-  logistic_wrap(seed = 1234, fit_cpp = TRUE, nits = 200),
-  check = F
-)
-```
 
 # Same results as version 0.4.x
 I compare the current version of the codes to my codes to show that the MCMC returned the exact same results. The current version the codes is in `R/bdlim4_0.4.R`.

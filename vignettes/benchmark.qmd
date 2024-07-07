@@ -1,0 +1,194 @@
+---
+title: "Benchmark C++ Implementation"
+format: 
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    toc-title: "Contents"
+    toc-expand: true
+    fig-align: center
+    number-sections: true
+editor: source
+author: Hung Pham
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+# Synopsis
+Given the refractors, the codes are now modular enough that I've implemented bdlim1 in `{RcppArmadillo}`. This file shows the results of this implementation.
+
+# Method
+Fit both bdlim1 in R and in C++, compare the draws of `dlfun`.
+
+```{r}
+library(bdlim)
+library(posterior)
+library(ggplot2)
+library(ggdist)
+
+# Helper functions
+draws_to_long <- function(draws, i, v) {
+  as_draws_df(
+    subset_draws(draws, variable = v, regex = TRUE, iteration = i)
+  ) |> 
+    tidyr::pivot_longer(cols = contains(v))
+}
+
+get_dlfun <- function(r_draws, cpp_draws, variable = ".dl", iters) {
+  r_fit_dlfun <- draws_to_long(r_draws, iters, variable)
+  r_fit_dlfun$fit <- "R"
+  
+  cpp_fit_dlfun <- draws_to_long(cpp_draws, iters, variable)
+  cpp_fit_dlfun$fit <- "C++"
+  
+  dplyr::bind_rows(r_fit_dlfun, cpp_fit_dlfun)
+}
+
+plot_dlfun <- function(d) {
+  d |>
+    ggplot(aes(
+      y = value,
+      x = fit,
+      color = fit,
+      fill = fit
+    )) +
+    facet_wrap( ~ name, scales = "free_y") +
+    stat_slab(alpha = 0.75) +
+    stat_pointinterval(position = position_dodge(width = .2, preserve = "single")) +
+    scale_color_manual(values = my_cols) +
+    scale_fill_manual(values = my_cols) +
+    bayesplot::theme_default()
+}
+```
+
+# Gaussian
+```{r}
+gaussian_wrap <- function(seed, fit_cpp, nits) {
+  set.seed(seed)
+  bdlim4(
+    y = sbd_bdlim$bwgaz,
+    exposure = sbd_bdlim[, paste0("pm25_", 32:37)], # fit only weeks 32:37
+    covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+    group = as.factor(sbd_bdlim$ChildSex),
+    model = "n",
+    df = 5,
+    nits = nits,
+    cpp = fit_cpp
+  )
+}
+
+my_cols <- c("#1B9E77", "#D95F02")
+```
+
+For Gaussian, using `{Rcpp}` we get the exact results as the R fit because `{Rcpp}` uses the same seed as R.
+```{r}
+g_r <- gaussian_wrap(seed = 1234, fit_cpp = FALSE, nits = 200)
+g_cpp <- gaussian_wrap(seed = 1234, fit_cpp = TRUE, nits = 200)
+```
+
+```{r}
+get_dlfun(g_r$fit_n$draws, g_cpp$fit_n$draws, iters = 101:200) |> 
+  plot_dlfun()
+```
+
+```{r}
+benchmark_wrap <- function(nit, wrapper, seed = 123) {
+  bm <- lapply(nit, \(x) {
+    bench::mark(
+      r = wrapper(
+        seed = seed,
+        fit_cpp = FALSE,
+        nits = x
+      ),
+      cpp = wrapper(
+        seed = seed,
+        fit_cpp = TRUE,
+        nits = x
+      ),
+      check = F,
+      filter_gc = FALSE, 
+      relative = TRUE
+    ) |> 
+      dplyr::mutate(nits = x)
+  })
+  
+  compare_tbl <- do.call(dplyr::bind_rows, bm) |> 
+    dplyr::mutate(expression = names(expression)) |> 
+    janitor::clean_names()
+  
+  return(compare_tbl)
+}
+
+gaussian_bm <- benchmark_wrap(c(50, 500, 1000), gaussian_wrap)
+```
+
+```{r}
+bm_plot <- function(bm, what) {
+  bm |>
+    ggplot(aes(x = nits, y = {{what}}, color = expression)) +
+    geom_point() +
+    scale_color_manual(values = my_cols) +
+    geom_line(aes(group = expression)) +
+    theme_bw()
+}
+```
+
+Next we benchmark. We see that C++ is much more memory efficient (x20). These are relative numbers (folds higher).
+```{r}
+gaussian_bm |> 
+  bm_plot(mem_alloc)
+```
+
+Up to 5x faster. Probably faster the higher nits is.
+```{r}
+gaussian_bm |> 
+  bm_plot(median)
+```
+
+# Logistics
+```{r}
+set.seed(1234)
+sbd_bdlim$y_binom <- rbinom(nrow(sbd_bdlim), 1, 0.5)
+logistic_wrap <- function(seed, fit_cpp, nits) {
+  set.seed(seed)
+  bdlim4(
+    y = sbd_bdlim$y_binom,
+    exposure = sbd_bdlim[, paste0("pm25_", 32:37)],
+    covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
+    group = as.factor(sbd_bdlim$ChildSex),
+    model = "n",
+    family = "binomial",
+    df = 5,
+    nits = nits,
+    cpp = fit_cpp
+  )
+}
+```
+
+For logistic, using `{Rcpp}` also get exact same results as R.
+```{r}
+l_r <- logistic_wrap(seed = 1234, fit_cpp = FALSE, nits = 200)
+l_cpp <- logistic_wrap(seed = 1234, fit_cpp = TRUE, nits = 200)
+
+get_dlfun(l_r$fit_n$draws, l_cpp$fit_n$draws, iters = 101:200) |> 
+  plot_dlfun()
+```
+
+```{r}
+logistic_bm <- benchmark_wrap(c(50, 500, 1000), logistic_wrap, seed = 12345)
+```
+
+Similar trends to Gaussian, but less of an increase.
+```{r}
+logistic_bm |> 
+  bm_plot(mem_alloc)
+```
+
+Up to 2x faster.
+```{r}
+logistic_bm |> 
+  bm_plot(median)
+```

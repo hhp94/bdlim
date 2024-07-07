@@ -1,14 +1,6 @@
 # CXX_STD = CXX11
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -DBAYESLOGIT_NDEBUG -DBAYESLOGIT_NTHROW
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
-PKG_CPPFLAGS += -I../inst/include -DUSE_R -I.
 
-# Add BayesLogit source files
-SOURCES = $(wildcard *.cpp BayesLogit/*.cpp)
-OBJECTS = $(SOURCES:.cpp=.o)
-
-# Specify the target
-all: $(SHLIB)
-
-# Link rule
-$(SHLIB): $(OBJECTS)
+# Don't need DUSE_R for bayeslogit because the random variables are already using Rcpp which uses R seed
+# -DUSE_R

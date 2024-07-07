@@ -12,5 +12,8 @@
 ^vignettes/proposal\.qmd$
 ^vignettes/proposal_files$
 ^vignettes/proposal\.html$
+^vignettes/benchmark\.qmd$
+^vignettes/benchmark_files$
+^vignettes/benchmark\.html$
 ^scraps\.R$
 ^calls\.rds$
