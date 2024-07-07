@@ -17,6 +17,7 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
     gaussian = bdlim1_gaussian,
     binomial = bdlim1_logistic,
     gaussian_cpp = bdlim1_gaussian_cpp,
+    binomial_cpp = bdlim1_logistic_cpp,
     stop("Unsupported Family")
   )
 
@@ -50,6 +51,7 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   n_times <- ncol(exposure)
   # design matrix for covariates and main effects of group
   design <- stats::model.matrix(y ~ . - 1, data = alldata)
+  n_regcoef <- ncol(design)
 
   # Calculate group_loc
   group_loc <- (nRE + 1):(nRE + n_groups)
@@ -91,10 +93,6 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
 
   # add weighted exposures to design matrix.
   design <- cbind(design, Edesign * drop(E))
-  n_regcoef <- ncol(design)
-
-  # init w_keep as a 3D array of n_weight_groups * n_times * nits
-  w_keep <- array(NA, dim = c(n_weight_groups, n_times, nits))
 
   # index for groups for weights
   # identifies which rows are in which weight groups
@@ -104,27 +102,20 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
     for (j in seq_along(group_loc)) {
       w_group_ids[[j]] <- which(design[, group_loc[j]] == 1)
     }
-    dimnames(w_keep) <- list(paste0(".W", "_", names_groups), seq_len(n_times), seq_len(nits))
+    w_keep_dn <- list(paste0(".W", "_", names_groups), seq_len(n_times), seq_len(nits))
   } else {
     w_group_ids[[1]] <- 1:n
-    dimnames(w_keep) <- list(".W", seq_len(n_times), seq_len(nits))
+    w_keep_dn <- list(".W", seq_len(n_times), seq_len(nits))
   }
 
   ## RE precision
   REprec <- 0.01
 
-  ## place to store results
-  regcoef_keep <- matrix(NA, nits, n_regcoef)
-  ll_sum_keep <- REprec_keep <- rep(NA, nits)
-
-  ## iterations to be kept
-  ## this is only used for waic
+  ## iterations to be kept this is only used for waic
   iter_keep <- seq(nburn + 1, nits, by = nthin)
-  ll_all_keep <- matrix(NA, n, length(iter_keep))
 
-  # format
-  colnames(regcoef_keep) <- colnames(design)
-  colnames(regcoef_keep)[group_loc] <- paste0("intercept", names_groups)
+  regcoef_keep_dn <- colnames(design)
+  regcoef_keep_dn[group_loc] <- paste0("intercept", names_groups)
 
   # if chains == 1, switch to lapply to 100% reproduce 0.4 version fit
   if (chains == 1) {
@@ -133,72 +124,40 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
     chain_fit <- future.apply::future_lapply
   }
 
-  # Separate arguments into fit_args and r_args
-  fit_args <- list(
-    y = y,
-    w = w,
-    nits = nits,
-    design = design,
-    nRE = nRE,
-    REmodel = REmodel,
-    w_group_ids = w_group_ids,
-    theta = theta,
-    basis = basis,
-    Edesign = Edesign,
-    exposure = exposure
-  )
-
-  r_args <- list(
-    REprec = REprec,
-    n_regcoef = n_regcoef,
-    RElocation = RElocation,
-    n_weight_groups = n_weight_groups,
-    df = df,
-    w_keep = w_keep,
-    regcoef_keep = regcoef_keep,
-    REprec_keep = REprec_keep,
-    ll_sum_keep = ll_sum_keep,
-    ll_all_keep = ll_all_keep,
-    names_groups = names_groups,
-    n_times = n_times,
-    b_free = b_free,
-    w_free = w_free,
-    n_groups = n_groups,
-    iter_keep = iter_keep
-  )
-
-  if (!cpp) {
-    fit_args <- c(fit_args, r_args)
-  }
-
   out <- chain_fit(
     seq_len(chains),
     function(x, future.seed = TRUE) {
-      # Use do.call to call bdlim1_fit with fit_args
-      f <- do.call(bdlim1_fit, fit_args)
-
-      if (cpp) {
-        return(
-          process_cpp(
-            f,
-            w_keep = r_args$w_keep,
-            regcoef_keep = r_args$regcoef_keep,
-            iter_keep = r_args$iter_keep,
-            names_groups = r_args$names_groups,
-            b_free = r_args$b_free,
-            w_free = r_args$w_free,
-            nRE = fit_args$nRE,
-            n_regcoef = r_args$n_regcoef
-          )
-        )
-      }
+      f <- bdlim1_fit(
+        y = y,
+        design = design,
+        nits = nits,
+        REmodel = REmodel,
+        nRE = nRE,
+        REprec = REprec,
+        w_group_ids = w_group_ids,
+        Edesign = Edesign,
+        basis = basis,
+        w = w,
+        theta = theta,
+        exposure = exposure
+      )
+      f <- process_draws(
+        f,
+        w_keep_dn = w_keep_dn,
+        regcoef_keep_dn = regcoef_keep_dn,
+        iter_keep = iter_keep,
+        names_groups = names_groups,
+        b_free = b_free,
+        w_free = w_free,
+        nRE = nRE
+      )
 
       return(f)
     },
     future.seed = TRUE
   )
 
-  out <- process_chains(out)
+  out <- combine_chains(out)
 
   out <- c(
     out,
@@ -226,12 +185,12 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   variable <- dimnames(out$draws)$variable
   out$variable <- list(
     w = grep(".W_", variable, value = TRUE),
-    regcoef = colnames(regcoef_keep[, (nRE + 1):n_regcoef]),
+    regcoef = regcoef_keep_dn[(nRE + 1):n_regcoef],
     dlfun = grep(".dl_", variable, value = TRUE),
     ce = grep(".ce_", variable, value = TRUE),
     Edesign = colnames(Edesign),
     sigma = if (family == "gaussian") "sigma" else NULL,
-    RE = if (REmodel) colnames(regcoef_keep[, 1:nRE]) else NULL,
+    RE = if (REmodel) grep(".id_", variable, value = TRUE) else NULL,
     REsd = if (REmodel) "REsd" else NULL
   )
 
@@ -247,17 +206,26 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   return(out)
 }
 
-#' Process the CPP output to harmonize with the R output
+#' Process the MCMC output to harmonize between the R and C++ output
 #'
 #' @keywords internal
 #'
 #' @noRd
-process_cpp <- function(out, w_keep, regcoef_keep, iter_keep, names_groups, b_free, w_free, nRE, n_regcoef) {
-  dimnames(out$w_keep) <- dimnames(w_keep)
-  colnames(out$regcoef_keep) <- colnames(regcoef_keep)
+process_draws <- function(
+    out,
+    w_keep_dn,
+    regcoef_keep_dn,
+    iter_keep,
+    names_groups,
+    b_free,
+    w_free,
+    nRE) {
+  # Re-assign colnames because C++ loses dim names
+  dimnames(out$w_keep) <- w_keep_dn
+  colnames(out$regcoef_keep) <- regcoef_keep_dn
   out$loglik <- colSums(out$ll_all_keep)
-  out$ll_all_keep <- out$ll_all_keep[, iter_keep, drop = F]
-  out$w_dlfun_ce <- process_w_dlfun_ce(
+  out$ll_all_keep <- out$ll_all_keep[, iter_keep, drop = FALSE]
+  out$w_dlfun_ce <- calc_w_dlfun_ce(
     w_keep = out$w_keep,
     regcoef_keep = out$regcoef_keep,
     names_groups = names_groups,
@@ -265,20 +233,28 @@ process_cpp <- function(out, w_keep, regcoef_keep, iter_keep, names_groups, b_fr
     w_free = w_free
   )
 
-  out$sigma <- drop(out$sigma_keep)
-  out$sigma_keep <- NULL
-  out$w_keep <- NULL
+  if (!is.null(out$sigma_keep)) {
+    out$sigma <- drop(out$sigma_keep)
+  }
+
   out <- c(
     out,
     asplit(out$regcoef_keep, 2),
     asplit(out$w_dlfun_ce, 2)
   )
-  out$w_dlfun_ce <- NULL
+
   if (!is.null(out$REprec_keep)) {
     out$REsd <- 1 / drop(sqrt(out$REprec_keep))
-    out$REprec_keep <- NULL
   }
-  out$regcoef_keep <- NULL
+
+  # List of elements to set to NULL
+  to_null <- c("w_keep", "sigma_keep", "w_dlfun_ce", "REprec_keep", "regcoef_keep")
+  for (element in to_null) {
+    if (!is.null(out[[element]])) {
+      out[[element]] <- NULL
+    }
+  }
+
   return(out)
 }
 
@@ -290,7 +266,7 @@ process_cpp <- function(out, w_keep, regcoef_keep, iter_keep, names_groups, b_fr
 #' @param out A `bdlim1_gaussian` or `bdlim1_logistic` fit.
 #' @keywords internal
 #' @noRd
-process_chains <- function(out) {
+combine_chains <- function(out) {
   # Get the names of the elements in each chain excluding `ll_all_keep`
   param <- setdiff(names(out[[1]]), "ll_all_keep")
 
@@ -304,11 +280,11 @@ process_chains <- function(out) {
   return(list(draws = draws, ll_all_keep = ll_all_keep))
 }
 
-#' Flatten w_keep and Calculate dlfun and ce
+#' Flatten `w_keep` and calculate `dlfun` and `ce`
 #'
 #' @keywords internal
 #' @noRd
-process_w_dlfun_ce <- function(w_keep, regcoef_keep, names_groups, b_free, w_free) {
+calc_w_dlfun_ce <- function(w_keep, regcoef_keep, names_groups, b_free, w_free) {
   w <- dlfun <- ce <- list()
   w_names <- dimnames(w_keep)[[2]]
   if (!b_free && !w_free) {
@@ -351,37 +327,33 @@ process_w_dlfun_ce <- function(w_keep, regcoef_keep, names_groups, b_free, w_fre
 #' @noRd
 bdlim1_gaussian <- function(
     y,
-    w,
-    nits,
     design,
+    nits,
+    REmodel,
     nRE,
     REprec,
-    n_regcoef,
-    REmodel,
-    RElocation,
-    n_weight_groups,
     w_group_ids,
-    theta,
-    df,
-    basis,
     Edesign,
-    exposure,
-    w_keep,
-    regcoef_keep,
-    REprec_keep,
-    ll_sum_keep,
-    ll_all_keep,
-    names_groups,
-    n_times,
-    b_free,
-    w_free,
-    n_groups,
-    iter_keep) {
+    basis,
+    w,
+    theta,
+    exposure) {
   # starting values specific for `bdlim1_gaussian`
   n <- length(y)
   sigma <- stats::sd(y)
   sigma_keep <- rep(NA, nits)
-  pred_mean_model_scale <- NA
+
+  n_regcoef <- ncol(design)
+  RElocation <- seq_len(nRE)
+  n_weight_groups <- length(w_group_ids)
+  df <- ncol(basis)
+  n_times <- nrow(basis)
+  n_groups <- ncol(Edesign)
+
+  w_keep <- array(NA, dim = c(n_weight_groups, n_times, nits))
+  regcoef_keep <- array(NA, dim = c(nits, n_regcoef))
+  ll_all_keep <- array(NA, dim = c(n, nits))
+  REprec_keep <- array(NA, dim = nits)
 
   for (i in 1:nits) {
     # update regression coefficients
@@ -444,75 +416,55 @@ bdlim1_gaussian <- function(
     if (REmodel) {
       REprec_keep[i] <- REprec
     }
-    pred_mean_model_scale <- design %*% regcoef
+
     # calculate log-likelihood once
-    ll_all <- stats::dnorm(y, pred_mean_model_scale, sigma, log = TRUE)
-    ll_sum_keep[i] <- sum(ll_all)
-    if (i %in% iter_keep) {
-      ll_all_keep[, which(iter_keep == i)] <- ll_all
-    }
+    ll_all_keep[, i] <- stats::dnorm(y, design %*% regcoef, sigma, log = TRUE)
   }
 
-  # Flatten w_keep after draw from group * times * iters to iters * group_times
-  w_dlfun_ce <- process_w_dlfun_ce(
+  result <- list(
     w_keep = w_keep,
     regcoef_keep = regcoef_keep,
-    names_groups = names_groups,
-    b_free = b_free,
-    w_free = w_free
-  )
-
-  out <- c(
-    asplit(regcoef_keep, 2),
-    list(sigma = sigma_keep),
-    asplit(w_dlfun_ce, 2),
-    list(loglik = ll_sum_keep),
-    list(ll_all_keep = ll_all_keep)
+    sigma_keep = sigma_keep,
+    ll_all_keep = ll_all_keep
   )
 
   if (REmodel) {
-    out <- c(
-      out,
-      list(REsd = 1 / sqrt(REprec_keep))
-    )
+    result[["REprec_keep"]] <- REprec_keep
   }
 
-  return(out)
+  return(result)
 }
 
 #' @keywords internal
 #' @noRd
 bdlim1_logistic <- function(
     y,
-    w,
-    nits,
     design,
+    nits,
+    REmodel,
     nRE,
     REprec,
-    n_regcoef,
-    REmodel,
-    RElocation,
-    n_weight_groups,
     w_group_ids,
-    theta,
-    df,
-    basis,
     Edesign,
-    exposure,
-    w_keep,
-    regcoef_keep,
-    REprec_keep,
-    ll_sum_keep,
-    ll_all_keep,
-    names_groups,
-    n_times,
-    b_free,
-    w_free,
-    n_groups,
-    iter_keep) {
+    basis,
+    w,
+    theta,
+    exposure) {
   n <- length(y)
   # set linear predictor to 0 for starting values
   pred_mean_model_scale <- rep(0, n)
+
+  n_regcoef <- ncol(design)
+  RElocation <- seq_len(nRE)
+  n_weight_groups <- length(w_group_ids)
+  df <- ncol(basis)
+  n_times <- nrow(basis)
+  n_groups <- ncol(Edesign)
+
+  w_keep <- array(NA, dim = c(n_weight_groups, n_times, nits))
+  regcoef_keep <- array(NA, dim = c(nits, n_regcoef))
+  ll_all_keep <- array(NA, dim = c(n, nits))
+  REprec_keep <- array(NA, dim = nits)
 
   for (i in 1:nits) {
     # omega from PG augmentation
@@ -565,46 +517,31 @@ bdlim1_logistic <- function(
 
       # update theta (w and design are already updated)
       theta[j, ] <- theta_prop
+
+      # keep w draws
+      w_keep[j, , i] <- w[j, ]
     }
 
     # save values
-    w_keep[i, ] <- c(t(w))
     regcoef_keep[i, ] <- regcoef
     if (REmodel) {
       REprec_keep[i] <- REprec
     }
-    pred_mean_model_scale <- design %*% regcoef
-    # calculate log-likelihood once
-    ll_all <- stats::dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE)
-    ll_sum_keep[i] <- sum(ll_all)
 
-    if (i %in% iter_keep) {
-      ll_all_keep[, which(iter_keep == i)] <- ll_all
-    }
+    # calculate log-likelihood once
+    pred_mean_model_scale <- design %*% regcoef
+    ll_all_keep[, i] <- stats::dbinom(y, 1, 1 / (1 + exp(-pred_mean_model_scale)), log = TRUE)
   }
 
-    # Flatten w_keep after draw from group * times * iters to iters * group_times
-  w_dlfun_ce <- process_w_dlfun_ce(
+  result <- list(
     w_keep = w_keep,
     regcoef_keep = regcoef_keep,
-    names_groups = names_groups,
-    b_free = b_free,
-    w_free = w_free
-  )
-
-  out <- c(
-    asplit(regcoef_keep, 2),
-    asplit(w_dlfun_ce, 2),
-    list(loglik = ll_sum_keep),
-    list(ll_all_keep = ll_all_keep)
+    ll_all_keep = ll_all_keep
   )
 
   if (REmodel) {
-    out <- c(
-      out,
-      list(REsd = 1 / sqrt(REprec_keep))
-    )
+    result[["REprec_keep"]] <- REprec_keep
   }
 
-  return(out)
+  return(result)
 }

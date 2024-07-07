@@ -24,7 +24,7 @@
 #include "PolyaGammaApproxAlt.h"
 #include "PolyaGammaApproxSP.h"
 #include "simple_RNG_wrapper.h"
-
+#include <Rcpp.h>
 
 void rpg_gamma(double *x, double *n, double *z, int *num, int *trunc)
 {
@@ -70,7 +70,7 @@ void rpg_devroye(double *x, int *n, double *z, int *num)
 #ifdef USE_R
     PutRNGstate();
 #endif
-} 
+}
 
 void rpg_alt(double *x, double *h, double *z, int* num)
 {

@@ -19,6 +19,7 @@
 
 #include "inverse_gaussian.h"
 #include "simple_RNG_wrapper.h"
+#include <Rcpp.h>
 
 double igauss(double mu, double lambda)
 {

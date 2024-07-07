@@ -15,11 +15,9 @@
 // You should have received a copy of the GNU General Public License along with
 // BayesLogit.  If not, see <https://www.gnu.org/licenses/>.
 
-
-
 #include "truncated_gamma.h"
 #include "simple_RNG_wrapper.h"
-
+#include <Rcpp.h>
 
 // Truncatation at t = 1.
 inline double right_tgamma_reject(double shape, double rate)
@@ -58,7 +56,7 @@ double right_tgamma_beta(double shape, double rate)
         }
     }
 
-    return beta(a, k);
+    return R::beta(a, k);
 }
 
 double rtgamma_rate(double shape, double rate, double right_t)

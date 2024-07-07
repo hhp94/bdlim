@@ -1,34 +1,30 @@
 #include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
 #include <cmath>
 
-// [[Rcpp::depends(RcppArmadillo)]]
 #define TWO_PI (2.0 * M_PI)
 #define LOG_2PI std::log(TWO_PI)
 #define EPSILON std::numeric_limits<double>::min()
 
-inline arma::vec log_likelihood(const arma::vec& y, const arma::mat& design, const arma::vec& regcoef, double inv_sigma, double constant) {
+arma::vec dnorm_cpp(const arma::vec& y, const arma::mat& design, const arma::vec& regcoef, double inv_sigma, double constant) {
   return constant - 0.5 * arma::square((y - design * regcoef) * inv_sigma);
 }
 
 // [[Rcpp::export]]
 Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
-                               const arma::mat& design_input,
+                               arma::mat& design,
                                const uint32_t nits,
                                bool REmodel,
                                const uint32_t nRE,
+                               double REprec,
                                const Rcpp::List& w_group_ids,
-                               const arma::mat& basis,
-                               const arma::mat& w_input,
-                               const arma::mat& theta_input,
                                const arma::mat& Edesign,
-                               const arma::mat& exposure) {
-  // init design, w, and theta based on input
-  arma::mat design = design_input;
-  arma::mat w = w_input;
-  arma::mat theta = theta_input;
-
+                               const arma::mat& basis,
+                               arma::mat& w,
+                               arma::mat& theta,
+                               const arma::mat& exposure)  {
   // init sigma related params
-  uint32_t n = y.n_elem;
+  int n = y.n_elem;
   double sigma = arma::stddev(y);
   double inv_sigma;
   double sigma_squared = sigma * sigma;
@@ -42,7 +38,6 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
   arma::vec m(n_regcoef), regcoef(n_regcoef), coef_draw(n_regcoef), diag_update(n_regcoef);
 
   // init RE params
-  double REprec = 0.01;
   double re_shape = 0.5 + nRE / 2.0;
   double re_rate;
   if (REmodel) {
@@ -67,7 +62,7 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
     g_idx_ptrs[j] = &g_idx_vecs[j];
   }
 
-  // store position of Edesign columns in the design matrix. is is number of cumulative effect
+  // store position of Edesign columns in the design matrix. it is the last Edesign.n_cols of the design matrix
   arma::uvec Edesign_loc = arma::regspace<arma::uvec>(design.n_cols - Edesign.n_cols, design.n_cols - 1);
 
   // init ellipse slice params
@@ -97,8 +92,6 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
   if (REmodel) {
     REprec_keep.set_size(nits);
   }
-  // almost 1 to 1 translation of the R codes to C++ codes
-  arma::mat weighted_exposure_expanded;
 
   for (uint32_t i = 0; i < nits; ++i) {
     V = arma::symmatu(design.t() * design / sigma_squared);
@@ -125,7 +118,7 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
     constant = -0.5 * LOG_2PI - std::log(sigma);
 
     for (uint16_t j = 0; j < n_weight_groups; ++j) {
-      ll = arma::sum(log_likelihood(y.elem(*g_idx_ptrs[j]), design.rows(*g_idx_ptrs[j]), regcoef, inv_sigma, constant));
+      ll = arma::sum(dnorm_cpp(y.elem(*g_idx_ptrs[j]), design.rows(*g_idx_ptrs[j]), regcoef, inv_sigma, constant));
       threshold = ll + std::log(std::max(Rcpp::runif(1, 0.0, 1.0)[0], EPSILON));
       ll = threshold - 1;
 
@@ -143,7 +136,7 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
         weighted_exposure = exposure.rows(*g_idx_ptrs[j]) * w.row(j).t();
         design.submat(*g_idx_ptrs[j], Edesign_loc) = Edesign_subsets[j].each_col() % weighted_exposure;
 
-        ll = arma::sum(log_likelihood(y.elem(*g_idx_ptrs[j]), design.rows(*g_idx_ptrs[j]), regcoef, inv_sigma, constant));
+        ll = arma::sum(dnorm_cpp(y.elem(*g_idx_ptrs[j]), design.rows(*g_idx_ptrs[j]), regcoef, inv_sigma, constant));
 
         if (eta < 0) {
           eta_min = eta;
@@ -164,17 +157,10 @@ Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y,
       REprec_keep(i) = REprec;
     }
 
-    ll_all_keep.col(i) = log_likelihood(y, design, regcoef, inv_sigma, constant);
+    ll_all_keep.col(i) = dnorm_cpp(y, design, regcoef, inv_sigma, constant);
   }
 
   Rcpp::List result = Rcpp::List::create(
-    // Rcpp::Named("ll") = ll,
-    // Rcpp::Named("threshold") = threshold,
-    // Rcpp::Named("theta_prop") = theta_prop,
-    // Rcpp::Named("w") = w,
-    // Rcpp::Named("design") = design,
-    // Rcpp::Named("eta") = eta,
-    // Rcpp::Named("theta") = theta,
     Rcpp::Named("w_keep") = w_keep,
     Rcpp::Named("regcoef_keep") = regcoef_keep.t(),
     Rcpp::Named("sigma_keep") = sigma_keep,

@@ -12,51 +12,53 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // bdlim1_gaussian_cpp
-Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y, const arma::mat& design_input, const uint32_t nits, bool REmodel, const uint32_t nRE, const Rcpp::List& w_group_ids, const arma::mat& basis, const arma::mat& w_input, const arma::mat& theta_input, const arma::mat& Edesign, const arma::mat& exposure);
-RcppExport SEXP _bdlim_bdlim1_gaussian_cpp(SEXP ySEXP, SEXP design_inputSEXP, SEXP nitsSEXP, SEXP REmodelSEXP, SEXP nRESEXP, SEXP w_group_idsSEXP, SEXP basisSEXP, SEXP w_inputSEXP, SEXP theta_inputSEXP, SEXP EdesignSEXP, SEXP exposureSEXP) {
+Rcpp::List bdlim1_gaussian_cpp(const arma::vec& y, arma::mat& design, const uint32_t nits, bool REmodel, const uint32_t nRE, double REprec, const Rcpp::List& w_group_ids, const arma::mat& Edesign, const arma::mat& basis, arma::mat& w, arma::mat& theta, const arma::mat& exposure);
+RcppExport SEXP _bdlim_bdlim1_gaussian_cpp(SEXP ySEXP, SEXP designSEXP, SEXP nitsSEXP, SEXP REmodelSEXP, SEXP nRESEXP, SEXP REprecSEXP, SEXP w_group_idsSEXP, SEXP EdesignSEXP, SEXP basisSEXP, SEXP wSEXP, SEXP thetaSEXP, SEXP exposureSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type design_input(design_inputSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type design(designSEXP);
     Rcpp::traits::input_parameter< const uint32_t >::type nits(nitsSEXP);
     Rcpp::traits::input_parameter< bool >::type REmodel(REmodelSEXP);
     Rcpp::traits::input_parameter< const uint32_t >::type nRE(nRESEXP);
+    Rcpp::traits::input_parameter< double >::type REprec(REprecSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type w_group_ids(w_group_idsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type basis(basisSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type w_input(w_inputSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type theta_input(theta_inputSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Edesign(EdesignSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type basis(basisSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type exposure(exposureSEXP);
-    rcpp_result_gen = Rcpp::wrap(bdlim1_gaussian_cpp(y, design_input, nits, REmodel, nRE, w_group_ids, basis, w_input, theta_input, Edesign, exposure));
+    rcpp_result_gen = Rcpp::wrap(bdlim1_gaussian_cpp(y, design, nits, REmodel, nRE, REprec, w_group_ids, Edesign, basis, w, theta, exposure));
     return rcpp_result_gen;
 END_RCPP
 }
 // bdlim1_logistic_cpp
-Rcpp::List bdlim1_logistic_cpp(const arma::vec& y, const arma::mat& design_input, const uint32_t nits, bool REmodel, const uint32_t nRE, const Rcpp::List& w_group_ids, const arma::mat& basis, const arma::mat& w_input, const arma::mat& theta_input, const arma::mat& Edesign, const arma::mat& exposure);
-RcppExport SEXP _bdlim_bdlim1_logistic_cpp(SEXP ySEXP, SEXP design_inputSEXP, SEXP nitsSEXP, SEXP REmodelSEXP, SEXP nRESEXP, SEXP w_group_idsSEXP, SEXP basisSEXP, SEXP w_inputSEXP, SEXP theta_inputSEXP, SEXP EdesignSEXP, SEXP exposureSEXP) {
+Rcpp::List bdlim1_logistic_cpp(const arma::vec& y, arma::mat& design, const uint32_t nits, bool REmodel, const uint32_t nRE, double REprec, const Rcpp::List& w_group_ids, const arma::mat& Edesign, const arma::mat& basis, arma::mat& w, arma::mat& theta, const arma::mat& exposure);
+RcppExport SEXP _bdlim_bdlim1_logistic_cpp(SEXP ySEXP, SEXP designSEXP, SEXP nitsSEXP, SEXP REmodelSEXP, SEXP nRESEXP, SEXP REprecSEXP, SEXP w_group_idsSEXP, SEXP EdesignSEXP, SEXP basisSEXP, SEXP wSEXP, SEXP thetaSEXP, SEXP exposureSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type design_input(design_inputSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type design(designSEXP);
     Rcpp::traits::input_parameter< const uint32_t >::type nits(nitsSEXP);
     Rcpp::traits::input_parameter< bool >::type REmodel(REmodelSEXP);
     Rcpp::traits::input_parameter< const uint32_t >::type nRE(nRESEXP);
+    Rcpp::traits::input_parameter< double >::type REprec(REprecSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type w_group_ids(w_group_idsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type basis(basisSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type w_input(w_inputSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type theta_input(theta_inputSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Edesign(EdesignSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type basis(basisSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type exposure(exposureSEXP);
-    rcpp_result_gen = Rcpp::wrap(bdlim1_logistic_cpp(y, design_input, nits, REmodel, nRE, w_group_ids, basis, w_input, theta_input, Edesign, exposure));
+    rcpp_result_gen = Rcpp::wrap(bdlim1_logistic_cpp(y, design, nits, REmodel, nRE, REprec, w_group_ids, Edesign, basis, w, theta, exposure));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_bdlim_bdlim1_gaussian_cpp", (DL_FUNC) &_bdlim_bdlim1_gaussian_cpp, 11},
-    {"_bdlim_bdlim1_logistic_cpp", (DL_FUNC) &_bdlim_bdlim1_logistic_cpp, 11},
+    {"_bdlim_bdlim1_gaussian_cpp", (DL_FUNC) &_bdlim_bdlim1_gaussian_cpp, 12},
+    {"_bdlim_bdlim1_logistic_cpp", (DL_FUNC) &_bdlim_bdlim1_logistic_cpp, 12},
     {NULL, NULL, 0}
 };
 

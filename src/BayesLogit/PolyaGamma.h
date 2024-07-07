@@ -30,6 +30,7 @@
 #include <vector>
 #include <stdio.h>
 #include <stdexcept>
+#include <Rcpp.h>
 
 using std::vector;
 
