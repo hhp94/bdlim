@@ -195,7 +195,12 @@ bdlim1 <- function(y, exposure, covars, group, id, w_free, b_free, df, nits, nbu
   )
 
   # Summarize MCMC Convergence
-  out$MCMC_check <- posterior::summarize_draws(out$draws, "rhat", "ess_bulk", "ess_tail")
+  out$MCMC_check <- posterior::summarize_draws(
+    # already subset in process_draws
+    out$draws,
+    # posterior::subset_draws(out$draws, iteration = iter_keep),
+    "rhat", "ess_bulk", "ess_tail"
+  )
 
   if (!loglik_all) {
     out$ll_all_keep <- NULL
@@ -223,8 +228,9 @@ process_draws <- function(
   # Re-assign colnames because C++ loses dim names
   dimnames(out$w_keep) <- w_keep_dn
   colnames(out$regcoef_keep) <- regcoef_keep_dn
-  out$loglik <- colSums(out$ll_all_keep)
   out$ll_all_keep <- out$ll_all_keep[, iter_keep, drop = FALSE]
+  out$loglik <- colSums(out$ll_all_keep)
+  # Calculate w, dlfun, ce
   out$w_dlfun_ce <- calc_w_dlfun_ce(
     w_keep = out$w_keep,
     regcoef_keep = out$regcoef_keep,
@@ -234,17 +240,17 @@ process_draws <- function(
   )
 
   if (!is.null(out$sigma_keep)) {
-    out$sigma <- drop(out$sigma_keep)
+    out$sigma <- drop(out$sigma_keep)[iter_keep]
   }
 
   out <- c(
     out,
-    asplit(out$regcoef_keep, 2),
-    asplit(out$w_dlfun_ce, 2)
+    asplit(out$regcoef_keep[iter_keep, ], 2),
+    asplit(out$w_dlfun_ce[iter_keep, ], 2)
   )
 
   if (!is.null(out$REprec_keep)) {
-    out$REsd <- 1 / drop(sqrt(out$REprec_keep))
+    out$REsd <- 1 / drop(sqrt(out$REprec_keep))[iter_keep]
   }
 
   # List of elements to set to NULL

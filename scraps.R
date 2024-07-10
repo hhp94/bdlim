@@ -6,24 +6,23 @@ set.seed(1234)
 sbd_bdlim$id <- rbinom(nrow(sbd_bdlim), 3, 0.5) |> factor()
 sbd_bdlim$y_binom <- rbinom(nrow(sbd_bdlim), 1, 0.5)
 fit_sex <- bdlim4(
-  y = sbd_bdlim$y_binom,
+  y = sbd_bdlim$bwgaz,
   exposure = sbd_bdlim[, paste0("pm25_", 1:37)],
   covars = sbd_bdlim[, "MomPriorBMI", drop = F],
   group = as.factor(sbd_bdlim$race),
   id = sbd_bdlim$id,
   model = "w",
   df = 5,
-  nits = 2,
-  family = "binomial",
+  nits = 1000,
+  family = "gaussian",
   cpp = TRUE
 )
 
-fit_sex$fit_n$model
-sfit_sex
+fit_sex$fit_w$draws
 sfit_sex <- fit_sex |> summary()
+sfit_sex
 sfit_sex |> plot()
 sfit_sex$dlfun
-
 
 # gaussian cpp ####
 # b <- readRDS("calls.rds")

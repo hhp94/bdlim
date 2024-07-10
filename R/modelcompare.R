@@ -19,11 +19,8 @@ modelcompare.default <- function(object) {
 #' @rdname modelcompare
 #' @export
 modelcompare.bdlim4 <- function(object) {
-  # iterations to keep.
-  iter_keep <- seq(object$nburn + 1, object$nits, by = object$nthin)
-
-  # make model probabilities
-  modelselect <- table(apply(object$loglik[iter_keep, , drop = FALSE], 1, which.max))
+  # make model probabilities. removed iter_keep because only kept draws are stored
+  modelselect <- table(apply(object$loglik[, , drop = FALSE], 1, which.max))
   names(modelselect) <- colnames(object$loglik)[as.numeric(names(modelselect))]
 
   # add in any groups missing due to 0 probability
@@ -38,5 +35,18 @@ modelcompare.bdlim4 <- function(object) {
 #' @rdname modelcompare
 #' @export
 modelcompare.bdlim4_0.4 <- function(object) {
-  return(modelcompare.bdlim4(object = object))
+  # iterations to keep.
+  iter_keep <- seq(object$nburn + 1, object$nits, by = object$nthin)
+
+  # make model probabilities
+  modelselect <- table(apply(object$loglik[iter_keep, , drop = FALSE], 1, which.max))
+  names(modelselect) <- colnames(object$loglik)[as.numeric(names(modelselect))]
+
+  # add in any groups missing due to 0 probability
+  out <- object$loglik[1, ]
+  out[] <- 0
+  out[names(modelselect)] <- c(modelselect)
+  out <- unlist(out / sum(out))
+
+  return(out)
 }

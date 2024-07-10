@@ -193,6 +193,7 @@ fit_sex_0.4 <- bdlim4_0.4(
   covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
+  nburn = 0,
   nits = 50
 )
 ```
@@ -206,6 +207,7 @@ fit_sex_new <- bdlim4(
   covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
+  nburn = 0,
   nits = 50
 )
 ```
@@ -263,6 +265,7 @@ fit_sex_0.4_binom <- bdlim4_0.4(
   covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
+  nburn = 0,
   family = "binomial",
   nits = 50
 )
@@ -277,6 +280,7 @@ fit_sex_new_binom <- bdlim4(
   covars = sbd_bdlim[, c("MomPriorBMI"), drop = F],
   group = as.factor(sbd_bdlim$ChildSex),
   df = 5,
+  nburn = 0,
   family = "binomial",
   nits = 50
 )

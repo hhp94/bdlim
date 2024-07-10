@@ -44,8 +44,6 @@ summary.bdlim1 <- function(object, exponentiate = FALSE, probs = c(0.025, 0.975)
 
   out <- list(WAIC = object$WAIC$WAIC, call = object$call)
 
-  iter_keep <- seq(object$nburn + 1, object$nits, by = object$nthin)
-
   dots <- list(...)
 
   if (length(dots) == 0) {
@@ -58,9 +56,6 @@ summary.bdlim1 <- function(object, exponentiate = FALSE, probs = c(0.025, 0.975)
   } else {
     default_args <- NULL
   }
-
-  object$draws <- posterior::subset_draws(object$draws, iteration = iter_keep)
-  object$draws <- posterior::as_draws_array(object$draws)
 
   if (object$family == "binomial" && exponentiate) {
     for (i in c(object$ce, object$dlfun, object$regcoef)) {

@@ -38,7 +38,7 @@ print.summary.bdlim4 <- function(x, ...) {
   }
   cat("\nBDLIM fit model =", " \"", x$model, "\"", " on ", x$n, " observations. ", sep = "")
   cat("WAIC is ", x$WAIC[1, bestmodel], ".\n", sep = "")
-  cat("\nUse `plot()` for the summary.bdlim4 x to view estimated distributed lag functions. The `dlfun` x in the summary x contains estimates of the lag functions.\n")
+  cat("\nUse `plot() for the summary.bdlim4 object to view estimated distributed lag functions. The `dlfun' object in the summary object contains estimates of the lag functions.\n")
   if (nrow(regcoef) > n) {
     warning(paste("Use `print(summary(bdlim4_fit), n = ...)` to print more than", n, "regression coefficients\n"))
   }
